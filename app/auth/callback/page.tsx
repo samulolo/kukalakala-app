@@ -1,13 +1,9 @@
 'use client'
-import { useState, useEffect, useRef } from "react"
+import { Suspense, useState, useEffect, useRef } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { getOauthUser } from "@/hooks/useAuth"
 
-
-
-
-
-export default function Callback(){
+function CallbackContent(){
 
     const [loading, setLoading] = useState(false)
     const [error, setError] = useState("")
@@ -71,9 +67,21 @@ export default function Callback(){
                 <>
                     <svg className="mr-3 size-5 animate-spin ..." viewBox="0 0 24 24">
                     </svg>
-                    <h2>Estamos a preparar o seu painel</h2>
+                    <h2>{loading ? "A validar a sessão..." : "Estamos a preparar o seu painel"}</h2>
                 </>
             )}
         </section>
+    )
+}
+
+// useSearchParams() precisa de um limite de Suspense (recomendação do
+// Next.js) — sem isto, o "next build" falha com "should be wrapped in
+// a suspense boundary" porque esta página não pode ser pré-renderizada
+// de forma estática sabendo à partida os parâmetros da URL (?code=...).
+export default function Callback() {
+    return (
+        <Suspense fallback={null}>
+            <CallbackContent />
+        </Suspense>
     )
 }
