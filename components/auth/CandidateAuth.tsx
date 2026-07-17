@@ -4,9 +4,6 @@ import { useState } from "react"
 import GoogleButton from "@/components/ui/GoogleButton"
 import LinkedinButton from "@/components/ui/LinkedinButton"
 import { providers } from "@/hooks/useAuth"
-import Link from "next/link"
-
-
 
 export type Props = {
     onClick? :() => void
@@ -72,9 +69,7 @@ export default function CandidateAuth({onClick} : Props) {
                     <div className="border-b border-slate-500 w-20 h-1"></div>
                 </div>
                 <div className="flex items-center gap-3">
-                    <Link href="/auth/register?type=candidate" className="text-sm text-blue-700 hover:text-blue-800 font-semibold p-2 transition">Criar conta</Link>
-                    <span className="text-slate-300">•</span>
-                    <button onClick={onClick} className="text-sm text-blue-700 hover:text-blue-800 font-semibold p-2 transition">Empresa</button>
+                    <button onClick={onClick} className="text-sm text-blue-700 hover:text-blue-800 font-semibold p-2 transition">Sou uma empresa</button>
                 </div>
             </div>
 

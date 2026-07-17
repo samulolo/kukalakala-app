@@ -53,7 +53,7 @@ export default function Home() {
                 description="Explore milhares de oportunidades de carreira com empresas líderes. Construa sua carreira com a Kukalakala."
                 benefits={candidateBenefits}
                 ctaText="Começar como Candidato"
-                ctaLink="/auth/register?type=candidate"
+                ctaLink="/auth/login?type=candidate"
                 illustration={<CandidateIllustration />}
                 caption="Seu Próximo Desafio"
             />

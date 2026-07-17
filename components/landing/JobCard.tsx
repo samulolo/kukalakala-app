@@ -69,7 +69,7 @@ export default function JobCard({ job, onApply, isApplied }: JobCardProps) {
                     </button>
                 ) : (
                     <Link
-                        href="/auth/register?type=candidate"
+                        href="/auth/login?type=candidate"
                         className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
                     >
                         Candidatar-se

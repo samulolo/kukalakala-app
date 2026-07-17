@@ -31,7 +31,7 @@ export default function HeroSection() {
                         {/* CTA Buttons */}
                         <div className="flex flex-col sm:flex-row gap-4 pt-4">
                             <Link
-                                href="/auth/register?type=candidate"
+                                href="/auth/login?type=candidate"
                                 className="px-8 py-4 bg-blue-700 text-white font-medium rounded-lg hover:bg-blue-800 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg text-center"
                             >
                                 Sou Candidato

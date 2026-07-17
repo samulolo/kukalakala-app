@@ -17,7 +17,7 @@ export default function CTASection() {
 
                     <div className="flex flex-col sm:flex-row gap-4 justify-center pt-4">
                         <Link
-                            href="/auth/register?type=candidate"
+                            href="/auth/login?type=candidate"
                             className="inline-flex items-center justify-center gap-2 px-8 py-4 bg-blue-700 text-white font-medium rounded-lg hover:bg-blue-800 transition-all duration-200 transform hover:-translate-y-0.5 hover:shadow-lg"
                         >
                             Sou Candidato

@@ -44,7 +44,7 @@ export default async function Navigation() {
                                 Entrar
                             </Link>
                             <Link href="/auth/register" className="text-sm font-medium text-white bg-blue-700 px-6 py-2 rounded-lg hover:bg-blue-800 transition-colors">
-                                Registrar
+                                Registar empresa
                             </Link>
                         </>
                     )}

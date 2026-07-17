@@ -6,9 +6,8 @@ import { Mail } from "lucide-react"
 import Input from "@/components/ui/Input"
 import Link from "next/link"
 import { supabase } from "@/supabase/client"
-import { Props } from "./auth/CandidateAuth"
 
-export default function CompanyRegisterForm({ onClick }: Props) {
+export default function CompanyRegisterForm() {
     const router = useRouter()
 
     const [formData, setFormData] = useState({
@@ -204,9 +203,9 @@ export default function CompanyRegisterForm({ onClick }: Props) {
                         Iniciar sessão
                     </Link>
                     <span className="text-slate-300">•</span>
-                    <button onClick={onClick} className="text-sm text-blue-700 hover:text-blue-800 font-semibold p-2 transition">
-                        Candidato
-                    </button>
+                    <Link href="/auth/login?type=candidate" className="text-sm text-blue-700 hover:text-blue-800 font-semibold p-2 transition">
+                        Sou candidato
+                    </Link>
                 </div>
             </div>
         </section>
