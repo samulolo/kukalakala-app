@@ -1,0 +1,135 @@
+"use client"
+
+import { useMemo, useState } from "react"
+import { MapPin, Briefcase, Eye } from "lucide-react"
+import type { CompanyApplicant } from "@/lib/supabase/company-applications"
+import type { ApplicationStatus } from "@/lib/supabase/applications"
+import { changeApplicationStatus } from "./actions"
+import CandidateDetailsDrawer from "./CandidateDetailsDrawer"
+
+const statusOptions: ApplicationStatus[] = ["Em análise", "Entrevista", "Aprovado", "Rejeitado"]
+
+export default function CandidaturasClient({ applications }: { applications: CompanyApplicant[] }) {
+    const [jobFilter, setJobFilter] = useState("all")
+    const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all")
+    const [savingId, setSavingId] = useState<string | null>(null)
+    const [selectedId, setSelectedId] = useState<string | null>(null)
+
+    const jobs = useMemo(() => {
+        const map = new Map<string, string>()
+        applications.forEach((a) => map.set(a.jobId, a.jobTitle))
+        return Array.from(map, ([id, title]) => ({ id, title }))
+    }, [applications])
+
+    const filtered = applications.filter((a) => {
+        if (jobFilter !== "all" && a.jobId !== jobFilter) return false
+        if (statusFilter !== "all" && a.status !== statusFilter) return false
+        return true
+    })
+
+    const selectedApplicant = applications.find((a) => a.id === selectedId) ?? null
+
+    const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {
+        setSavingId(applicationId)
+        await changeApplicationStatus(applicationId, status)
+        setSavingId(null)
+    }
+
+    const selectClass =
+        "px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
+
+    return (
+        <>
+            <div className="flex flex-wrap items-center gap-3 mb-4">
+                <select value={jobFilter} onChange={(e) => setJobFilter(e.target.value)} className={selectClass}>
+                    <option value="all">Todas as vagas</option>
+                    {jobs.map((job) => (
+                        <option key={job.id} value={job.id}>{job.title}</option>
+                    ))}
+                </select>
+
+                <select
+                    value={statusFilter}
+                    onChange={(e) => setStatusFilter(e.target.value as "all" | ApplicationStatus)}
+                    className={selectClass}
+                >
+                    <option value="all">Todos os estados</option>
+                    {statusOptions.map((status) => (
+                        <option key={status} value={status}>{status}</option>
+                    ))}
+                </select>
+
+                <span className="text-xs text-slate-400 font-light ml-auto">
+                    {filtered.length} {filtered.length === 1 ? "candidatura" : "candidaturas"}
+                </span>
+            </div>
+
+            <div className="p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                {filtered.length > 0 ? (
+                    <ul className="divide-y divide-slate-100 px-2">
+                        {filtered.map((application) => (
+                            <li
+                                key={application.id}
+                                className="py-4 px-1 flex flex-col sm:flex-row sm:items-center gap-3"
+                            >
+                                <span className="flex-shrink-0 inline-flex items-center justify-center w-10 h-10 rounded-lg bg-blue-700 text-white text-sm font-semibold">
+                                    {application.candidateName.charAt(0)}
+                                </span>
+
+                                <div className="min-w-0 flex-1">
+                                    <p className="text-sm font-medium text-slate-900 truncate">{application.candidateName}</p>
+                                    <p className="text-xs text-slate-500 font-light truncate">
+                                        {application.candidateHeadline || "Sem cargo indicado"}
+                                        {application.candidateLocation && (
+                                            <span className="inline-flex items-center gap-1 ml-2">
+                                                <MapPin className="w-3 h-3 inline" strokeWidth={1.5} />
+                                                {application.candidateLocation}
+                                            </span>
+                                        )}
+                                    </p>
+                                    <p className="text-xs text-slate-400 font-light mt-0.5 inline-flex items-center gap-1">
+                                        <Briefcase className="w-3 h-3" strokeWidth={1.5} />
+                                        {application.jobTitle} · {application.appliedAt}
+                                    </p>
+                                </div>
+
+                                <button
+                                    type="button"
+                                    onClick={() => setSelectedId(application.id)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
+                                >
+                                    <Eye className="w-4 h-4" strokeWidth={1.75} />
+                                    Ver detalhes
+                                </button>
+
+                                <select
+                                    value={application.status}
+                                    onChange={(e) => handleStatusChange(application.id, e.target.value as ApplicationStatus)}
+                                    disabled={savingId === application.id}
+                                    className={`${selectClass} flex-shrink-0 disabled:opacity-50`}
+                                >
+                                    {statusOptions.map((status) => (
+                                        <option key={status} value={status}>{status}</option>
+                                    ))}
+                                </select>
+                            </li>
+                        ))}
+                    </ul>
+                ) : (
+                    <div className="text-center py-16">
+                        <p className="text-slate-600 font-light text-sm">
+                            Nenhuma candidatura encontrada
+                        </p>
+                    </div>
+                )}
+            </div>
+
+            <CandidateDetailsDrawer
+                applicant={selectedApplicant}
+                onClose={() => setSelectedId(null)}
+                onStatusChange={handleStatusChange}
+                saving={savingId === selectedId}
+            />
+        </>
+    )
+}
