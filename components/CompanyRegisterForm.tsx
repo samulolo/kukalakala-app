@@ -17,11 +17,14 @@ export default function CompanyRegisterForm() {
         confirmPassword: ""
     })
 
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
+
     const [errors, setErrors] = useState({
         companyName: "",
         email: "",
         password: "",
-        confirmPassword: ""
+        confirmPassword: "",
+        acceptedTerms: ""
     })
 
     const [submitting, setSubmitting] = useState(false)
@@ -29,7 +32,7 @@ export default function CompanyRegisterForm() {
     const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
 
     const validateForm = () => {
-        const newErrors = { companyName: "", email: "", password: "", confirmPassword: "" }
+        const newErrors = { companyName: "", email: "", password: "", confirmPassword: "", acceptedTerms: "" }
 
         if (!formData.companyName.trim()) {
             newErrors.companyName = "Nome da empresa é obrigatório"
@@ -42,6 +45,9 @@ export default function CompanyRegisterForm() {
         }
         if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = "As senhas não coincidem"
+        }
+        if (!acceptedTerms) {
+            newErrors.acceptedTerms = "Precisas de aceitar os Termos de Serviço e a Política de Privacidade"
         }
 
         setErrors(newErrors)
@@ -176,6 +182,32 @@ export default function CompanyRegisterForm() {
                         {errors.confirmPassword && <p className="text-red-500 text-xs mt-1">{errors.confirmPassword}</p>}
                     </div>
 
+                    <div>
+                        <label className="flex items-start gap-2.5 text-xs text-slate-500 cursor-pointer">
+                            <input
+                                type="checkbox"
+                                checked={acceptedTerms}
+                                onChange={(e) => {
+                                    setAcceptedTerms(e.target.checked)
+                                    if (e.target.checked) setErrors((previous) => ({ ...previous, acceptedTerms: "" }))
+                                }}
+                                className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500 accent-blue-700"
+                            />
+                            <span>
+                                Li e aceito os{" "}
+                                <Link href="/termos" className="text-blue-700 hover:text-blue-800 font-medium">
+                                    Termos de Serviço
+                                </Link>{" "}
+                                e a{" "}
+                                <Link href="/privacidade" className="text-blue-700 hover:text-blue-800 font-medium">
+                                    Política de Privacidade
+                                </Link>
+                                .
+                            </span>
+                        </label>
+                        {errors.acceptedTerms && <p className="text-red-500 text-xs mt-1">{errors.acceptedTerms}</p>}
+                    </div>
+
                     {submitError && <p className="text-red-500 text-sm">{submitError}</p>}
 
                     <button
@@ -186,10 +218,6 @@ export default function CompanyRegisterForm() {
                         {submitting ? "A criar conta..." : "Criar Conta"}
                     </button>
                 </form>
-
-                <p className="mt-6 text-center text-xs text-slate-500">
-                    Ao registrar, você concorda com nossos <Link href="#" className="text-blue-700 hover:text-blue-800">Termos de Serviço</Link>
-                </p>
             </div>
 
             <div className="flex flex-col items-center gap-2 mt-5">

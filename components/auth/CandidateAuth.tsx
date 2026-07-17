@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from "react"
+import Link from "next/link"
 import GoogleButton from "@/components/ui/GoogleButton"
 import LinkedinButton from "@/components/ui/LinkedinButton"
 import { providers } from "@/hooks/useAuth"
@@ -13,8 +14,13 @@ export default function CandidateAuth({onClick} : Props) {
 
     const [loadingProvider, setLoadingProvider] = useState<'google' | 'linkedin' | null>(null)
     const [authError, setAuthError] = useState<string | null>(null)
+    const [acceptedTerms, setAcceptedTerms] = useState(false)
 
     const handleLogin = async function(provider : 'google' | 'linkedin'){
+        if (!acceptedTerms) {
+            setAuthError("Precisas de aceitar os Termos de Serviço e a Política de Privacidade para continuar.")
+            return
+        }
         setAuthError(null)
         setLoadingProvider(provider)
         try {
@@ -49,14 +55,37 @@ export default function CandidateAuth({onClick} : Props) {
                     </div>
                 )}
 
+                <label className="mb-4 flex items-start gap-2.5 text-xs text-slate-500 cursor-pointer">
+                    <input
+                        type="checkbox"
+                        checked={acceptedTerms}
+                        onChange={(e) => {
+                            setAcceptedTerms(e.target.checked)
+                            if (e.target.checked) setAuthError(null)
+                        }}
+                        className="mt-0.5 w-4 h-4 rounded border-slate-300 text-blue-700 focus:ring-blue-500 accent-blue-700"
+                    />
+                    <span>
+                        Li e aceito os{" "}
+                        <Link href="/termos" className="text-blue-700 hover:text-blue-800 font-medium">
+                            Termos de Serviço
+                        </Link>{" "}
+                        e a{" "}
+                        <Link href="/privacidade" className="text-blue-700 hover:text-blue-800 font-medium">
+                            Política de Privacidade
+                        </Link>
+                        .
+                    </span>
+                </label>
+
                 <div className="space-y-3">
                     <GoogleButton
-                    disabled={loadingProvider !== null}
+                    disabled={loadingProvider !== null || !acceptedTerms}
                     loading={loadingProvider === 'google'}
                     onClick={ async () => await handleLogin('google')}
                      className="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700" />
                     <LinkedinButton
-                    disabled={loadingProvider !== null}
+                    disabled={loadingProvider !== null || !acceptedTerms}
                     loading={loadingProvider === 'linkedin'}
                     onClick={ async () => await handleLogin('linkedin')}
                      className="w-full bg-white hover:bg-slate-50 border border-slate-300 text-slate-700" />
