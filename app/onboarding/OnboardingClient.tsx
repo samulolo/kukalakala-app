@@ -3,8 +3,9 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { X, ArrowRight, ArrowLeft, Check } from "lucide-react"
-import { completeOnboarding } from "./actions"
+import { completeOnboarding, skipOnboarding } from "./actions"
 import CvUploader from "@/components/dashboard/CvUploader"
+import { ONBOARDING_SKIPPED_KEY } from "@/lib/onboarding-skip-flag"
 
 interface StepDef {
     id: string
@@ -59,6 +60,7 @@ export default function OnboardingClient({ initialName }: { initialName: string 
     const [cv, setCv] = useState<{ filename: string | null; path: string | null }>({ filename: null, path: null })
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState("")
+    const [skipping, setSkipping] = useState(false)
 
     const step = steps[stepIndex]
     const isLastStep = stepIndex === steps.length - 1
@@ -120,6 +122,23 @@ export default function OnboardingClient({ initialName }: { initialName: string 
         setStepIndex((prev) => Math.max(0, prev - 1))
     }
 
+    // Grava uma linha mínima de perfil (só o nome) para o onboarding não
+    // reaparecer nos próximos logins, e sinaliza a dashboard para mostrar
+    // um toast a lembrar de completar o resto do perfil mais tarde.
+    const handleSkip = async () => {
+        if (skipping) return
+        setSkipping(true)
+        try {
+            await skipOnboarding(form.name)
+        } catch {
+            // Melhor deixar o candidato sair do que bloqueá-lo aqui — o
+            // pior cenário é o onboarding reaparecer no próximo login.
+        } finally {
+            sessionStorage.setItem(ONBOARDING_SKIPPED_KEY, "1")
+            router.push("/dashboard")
+        }
+    }
+
     return (
         <div className="space-y-6">
             {/* Progress */}
@@ -129,10 +148,11 @@ export default function OnboardingClient({ initialName }: { initialName: string 
                         {step.eyebrow}
                     </span>
                     <button
-                        onClick={() => router.push("/dashboard")}
-                        className="text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors"
+                        onClick={handleSkip}
+                        disabled={skipping}
+                        className="text-xs font-medium text-slate-400 hover:text-slate-600 transition-colors disabled:opacity-60"
                     >
-                        Preencher mais tarde
+                        {skipping ? "A sair..." : "Preencher mais tarde"}
                     </button>
                 </div>
                 <div className="w-full h-1.5 rounded-full bg-slate-200">

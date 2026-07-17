@@ -13,6 +13,7 @@ import FavoritesDrawer from "@/components/dashboard/FavoritesDrawer"
 import { ApplicationsProvider } from "@/components/dashboard/ApplicationsContext"
 import { ToastProvider } from "@/components/dashboard/ToastContext"
 import ToastViewport from "@/components/dashboard/ToastViewport"
+import OnboardingSkippedNotice from "@/components/dashboard/OnboardingSkippedNotice"
 
 export default async function DashboardLayout({
     children
@@ -57,6 +58,7 @@ export default async function DashboardLayout({
                         <FavoritesDrawer />
                     </div>
                     <ToastViewport />
+                    <OnboardingSkippedNotice />
                 </FavoritesDrawerProvider>
             </ApplicationsProvider>
         </ToastProvider>

@@ -1,5 +1,7 @@
 import { redirect } from "next/navigation"
+import Link from "next/link"
 import { createClient } from "@/supabase/server"
+import { getMyProfile } from "@/lib/supabase/profile"
 
 export default async function OnboardingLayout({
     children
@@ -11,6 +13,15 @@ export default async function OnboardingLayout({
     // página/layout deve validar a sessão por si própria.
     if (error || !user) {
         redirect("/auth/login")
+    }
+
+    // Já é candidato (completou ou saltou o onboarding antes, o que
+    // importa é a linha em "profiles" existir) — não mostrar o
+    // onboarding outra vez, mesmo que volte a visitar /onboarding
+    // diretamente pelo URL.
+    const profile = await getMyProfile()
+    if (profile) {
+        redirect("/dashboard")
     }
 
     return (
@@ -25,8 +36,8 @@ export default async function OnboardingLayout({
                 {children}
             </div>
             <footer className="text-center flex gap-2 text-xs text-slate-500 mt-10">
-                <button className="hover:text-slate-700 transition">Privacidade</button>
-                <button>Termos de serviço</button>
+                <Link href="/privacidade" className="hover:text-slate-700 transition">Privacidade</Link>
+                <Link href="/termos" className="hover:text-slate-700 transition">Termos de serviço</Link>
             </footer>
         </main>
     )
