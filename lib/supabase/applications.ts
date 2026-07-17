@@ -163,3 +163,39 @@ export async function getAppliedJobIds(): Promise<string[]> {
 
     return (data ?? []).map((row) => row.job_id)
 }
+
+export interface ViewerApplicationState {
+    isAuthenticated: boolean
+    isCandidate: boolean
+    appliedJobIds: string[]
+}
+
+// Estado do visitante para as rotas públicas de vagas (/vagas, /vagas/[id]):
+// se pode candidatar-se (autenticado + conta de candidato, não empresa) e a
+// que vagas já se candidatou (para não repetir candidatura na UI — a
+// constraint unique(candidate_id, job_id) na BD é o backstop final).
+export async function getViewerApplicationState(): Promise<ViewerApplicationState> {
+    const supabase = await createClient()
+    const { data: { user } } = await supabase.auth.getUser()
+
+    if (!user) {
+        return { isAuthenticated: false, isCandidate: false, appliedJobIds: [] }
+    }
+
+    const isCandidate = user.user_metadata?.role !== "company"
+    if (!isCandidate) {
+        return { isAuthenticated: true, isCandidate: false, appliedJobIds: [] }
+    }
+
+    const { data, error } = await supabase
+        .from("applications")
+        .select("job_id")
+        .eq("candidate_id", user.id)
+
+    if (error) {
+        console.error("Erro ao carregar candidaturas: ", error)
+        return { isAuthenticated: true, isCandidate: true, appliedJobIds: [] }
+    }
+
+    return { isAuthenticated: true, isCandidate: true, appliedJobIds: (data ?? []).map((row) => row.job_id) }
+}

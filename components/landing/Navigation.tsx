@@ -1,6 +1,7 @@
 import Link from "next/link"
 import { LayoutDashboard } from "lucide-react"
 import { createClient } from "@/supabase/server"
+import MobileMenu from "./MobileMenu"
 
 export default async function Navigation() {
     const supabase = await createClient()
@@ -29,7 +30,7 @@ export default async function Navigation() {
                     </Link>
                 </div>
 
-                <div className="flex items-center gap-3">
+                <div className="hidden md:flex items-center gap-3">
                     {user ? (
                         <Link
                             href={dashboardHref}
@@ -49,6 +50,8 @@ export default async function Navigation() {
                         </>
                     )}
                 </div>
+
+                <MobileMenu isLoggedIn={Boolean(user)} dashboardHref={dashboardHref} dashboardLabel={dashboardLabel} />
             </div>
         </nav>
     )

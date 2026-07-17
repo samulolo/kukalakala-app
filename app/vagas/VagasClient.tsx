@@ -6,6 +6,7 @@ import { Search } from "lucide-react"
 import JobCard from "@/components/landing/JobCard"
 import Pagination from "./Pagination"
 import type { JobFilterOptions, JobsPage } from "@/lib/supabase/jobs"
+import type { ViewerApplicationState } from "@/lib/supabase/applications"
 
 interface Filters {
     q: string
@@ -18,9 +19,11 @@ interface VagasClientProps {
     jobsPage: JobsPage
     filterOptions: JobFilterOptions
     initialFilters: Filters
+    viewer: ViewerApplicationState
 }
 
-export default function VagasClient({ jobsPage, filterOptions, initialFilters }: VagasClientProps) {
+export default function VagasClient({ jobsPage, filterOptions, initialFilters, viewer }: VagasClientProps) {
+    const appliedJobIds = new Set(viewer.appliedJobIds)
     const router = useRouter()
     const pathname = usePathname()
     const [isPending, startTransition] = useTransition()
@@ -155,7 +158,13 @@ export default function VagasClient({ jobsPage, filterOptions, initialFilters }:
                         {jobsPage.jobs.length > 0 ? (
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                                 {jobsPage.jobs.map((job) => (
-                                    <JobCard key={job.id} job={job} />
+                                    <JobCard
+                                        key={job.id}
+                                        job={job}
+                                        isAuthenticated={viewer.isAuthenticated}
+                                        isCandidate={viewer.isCandidate}
+                                        isApplied={appliedJobIds.has(job.id)}
+                                    />
                                 ))}
                             </div>
                         ) : (

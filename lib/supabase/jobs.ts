@@ -174,12 +174,16 @@ export async function getJobsByIds(ids: string[]): Promise<Job[]> {
     return (data ?? []).map(mapJobRow)
 }
 
+// Usada pela página pública /vagas/[id]: só mostra vagas ativas (mesma
+// regra de getJobs/getJobsPage), para uma vaga fechada não ficar
+// acessível por URL direta.
 export async function getJobById(id: string): Promise<Job | null> {
     const supabase = await createClient()
     const { data, error } = await supabase
         .from("jobs")
         .select("*")
         .eq("id", id)
+        .eq("is_active", true)
         .maybeSingle()
 
     if (error || !data) return null

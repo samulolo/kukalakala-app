@@ -1,16 +1,16 @@
-"use client"
-
 import Link from "next/link"
-import { MapPin, Clock, ArrowUpRight, Check } from "lucide-react"
+import { MapPin, Clock, Eye } from "lucide-react"
 import type { Job } from "@/lib/supabase/jobs"
+import ApplyButton from "./ApplyButton"
 
 interface JobCardProps {
     job: Job
-    onApply?: (job: Job) => void
+    isAuthenticated?: boolean
+    isCandidate?: boolean
     isApplied?: boolean
 }
 
-export default function JobCard({ job, onApply, isApplied }: JobCardProps) {
+export default function JobCard({ job, isAuthenticated = false, isCandidate = false, isApplied = false }: JobCardProps) {
     return (
         <div className="group p-6 rounded-2xl border border-slate-200 bg-white shadow-sm hover:border-blue-200 hover:shadow-md transition-all duration-300">
             <div className="flex items-start justify-between gap-4">
@@ -46,36 +46,21 @@ export default function JobCard({ job, onApply, isApplied }: JobCardProps) {
 
             <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
                 <span className="text-sm font-medium text-slate-900">{job.salaryRange}</span>
-                {onApply ? (
-                    <button
-                        type="button"
-                        onClick={() => onApply(job)}
-                        disabled={isApplied}
-                        className={`inline-flex items-center gap-1 text-sm font-medium transition-colors ${
-                            isApplied ? "text-emerald-600 cursor-default" : "text-blue-700 hover:text-blue-800"
-                        }`}
-                    >
-                        {isApplied ? (
-                            <>
-                                <Check className="w-4 h-4" />
-                                Candidatura enviada
-                            </>
-                        ) : (
-                            <>
-                                Candidatar-se
-                                <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-                            </>
-                        )}
-                    </button>
-                ) : (
+                <div className="flex items-center gap-4">
                     <Link
-                        href="/auth/login?type=candidate"
-                        className="inline-flex items-center gap-1 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
+                        href={`/vagas/${job.id}`}
+                        className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
                     >
-                        Candidatar-se
-                        <ArrowUpRight className="w-4 h-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                        <Eye className="w-4 h-4" strokeWidth={1.75} />
+                        Ver detalhes
                     </Link>
-                )}
+                    <ApplyButton
+                        jobId={job.id}
+                        isAuthenticated={isAuthenticated}
+                        isCandidate={isCandidate}
+                        initiallyApplied={isApplied}
+                    />
+                </div>
             </div>
         </div>
     )

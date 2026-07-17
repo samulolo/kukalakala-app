@@ -1,11 +1,13 @@
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import { getJobs } from "@/lib/supabase/jobs"
+import { getViewerApplicationState } from "@/lib/supabase/applications"
 import JobCard from "./JobCard"
 
 export default async function VagasSection() {
-    const jobs = await getJobs()
+    const [jobs, viewer] = await Promise.all([getJobs(), getViewerApplicationState()])
     const featuredJobs = jobs.slice(0, 4)
+    const appliedJobIds = new Set(viewer.appliedJobIds)
 
     return (
         <section id="vagas" className="py-24 px-6">
@@ -35,7 +37,13 @@ export default async function VagasSection() {
                 {/* Jobs Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                     {featuredJobs.map((job) => (
-                        <JobCard key={job.id} job={job} />
+                        <JobCard
+                            key={job.id}
+                            job={job}
+                            isAuthenticated={viewer.isAuthenticated}
+                            isCandidate={viewer.isCandidate}
+                            isApplied={appliedJobIds.has(job.id)}
+                        />
                     ))}
                 </div>
             </div>

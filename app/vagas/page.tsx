@@ -1,6 +1,7 @@
 import Navigation from "@/components/landing/Navigation"
 import Footer from "@/components/landing/Footer"
 import { getJobFilterOptions, getJobsPage } from "@/lib/supabase/jobs"
+import { getViewerApplicationState } from "@/lib/supabase/applications"
 import VagasClient from "./VagasClient"
 
 interface VagasPageProps {
@@ -24,9 +25,10 @@ export default async function VagasPage({ searchParams }: VagasPageProps) {
         type: params.type ?? ""
     }
 
-    const [jobsPage, filterOptions] = await Promise.all([
+    const [jobsPage, filterOptions, viewer] = await Promise.all([
         getJobsPage({ ...filters, page }),
-        getJobFilterOptions()
+        getJobFilterOptions(),
+        getViewerApplicationState()
     ])
 
     return (
@@ -43,6 +45,7 @@ export default async function VagasPage({ searchParams }: VagasPageProps) {
                     jobsPage={jobsPage}
                     filterOptions={filterOptions}
                     initialFilters={filters}
+                    viewer={viewer}
                 />
             </main>
 
