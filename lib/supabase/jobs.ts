@@ -10,6 +10,8 @@ export interface Job {
     category: string
     salaryRange: string
     postedAt: string
+    /** Data de criação em ISO 8601 — usada em metadata/JSON-LD (datePosted). */
+    createdAt: string
     description: string
     responsibilities: string[]
     requirements: string[]
@@ -39,6 +41,7 @@ function mapJobRow(row: JobRow): Job {
         category: row.category,
         salaryRange: row.salary_range,
         postedAt: formatRelativeTime(row.created_at),
+        createdAt: row.created_at,
         description: row.description,
         responsibilities: row.responsibilities ?? [],
         requirements: row.requirements ?? []

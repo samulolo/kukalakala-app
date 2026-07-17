@@ -30,9 +30,9 @@ const footerSections: FooterSection[] = [
     {
         title: "Legal",
         links: [
-            { label: "Privacidade", href: "#" },
-            { label: "Termos", href: "#" },
-            { label: "Cookies", href: "#" }
+            { label: "Privacidade", href: "/privacidade" },
+            { label: "Termos", href: "/termos" },
+            { label: "Cookies", href: "/privacidade#cookies" }
         ]
     }
 ]
@@ -78,7 +78,7 @@ export default function Footer() {
                 {/* Divider */}
                 <div className="border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
                     <p className="text-sm font-light">
-                        &copy; 2024 Kukalakala. Todos os direitos reservados.
+                        &copy; {new Date().getFullYear()} Kukalakala. Todos os direitos reservados.
                     </p>
                     <div className="flex gap-6">
                         <Link href="#" className="text-sm font-light hover:text-white transition-colors">

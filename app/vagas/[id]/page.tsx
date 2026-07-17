@@ -1,14 +1,38 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
+import type { Metadata } from "next"
 import { ArrowLeft, MapPin, Clock } from "lucide-react"
 import Navigation from "@/components/landing/Navigation"
 import Footer from "@/components/landing/Footer"
 import ApplyButton from "@/components/landing/ApplyButton"
 import { getJobById } from "@/lib/supabase/jobs"
 import { getViewerApplicationState } from "@/lib/supabase/applications"
+import { buildJobPostingJsonLd } from "@/lib/seo/job-jsonld"
 
 interface JobDetailsPageProps {
     params: Promise<{ id: string }>
+}
+
+function truncate(text: string, maxLength: number): string {
+    if (text.length <= maxLength) return text
+    return `${text.slice(0, maxLength - 1).trimEnd()}…`
+}
+
+export async function generateMetadata({ params }: JobDetailsPageProps): Promise<Metadata> {
+    const { id } = await params
+    const job = await getJobById(id)
+    if (!job) return { title: "Vaga não encontrada" }
+
+    const title = `${job.title} — ${job.company}`
+    const description = truncate(job.description, 160)
+
+    return {
+        title,
+        description,
+        alternates: { canonical: `/vagas/${job.id}` },
+        openGraph: { title, description, type: "website" },
+        twitter: { title, description }
+    }
 }
 
 export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
@@ -22,8 +46,16 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
     if (!job) notFound()
 
     const isApplied = viewer.appliedJobIds.includes(job.id)
+    const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+    const jobPostingJsonLd = buildJobPostingJsonLd(job, `${siteUrl}/vagas/${job.id}`)
 
     return (
+        <>
+        {/* Dados estruturados JobPosting — habilita rich results no Google Jobs. */}
+        <script
+            type="application/ld+json"
+            dangerouslySetInnerHTML={{ __html: JSON.stringify(jobPostingJsonLd) }}
+        />
         <div className="bg-white min-h-screen flex flex-col">
             <Navigation />
 
@@ -115,5 +147,6 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
 
             <Footer />
         </div>
+        </>
     )
 }

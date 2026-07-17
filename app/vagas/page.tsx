@@ -1,3 +1,4 @@
+import type { Metadata } from "next"
 import Navigation from "@/components/landing/Navigation"
 import Footer from "@/components/landing/Footer"
 import { getJobFilterOptions, getJobsPage } from "@/lib/supabase/jobs"
@@ -12,6 +13,47 @@ interface VagasPageProps {
         type?: string
         page?: string
     }>
+}
+
+// Título/descrição refletem os filtros ativos ("Vagas de Marketing em
+// Lisboa"), para pesquisas específicas terem um snippet relevante nos
+// motores de busca. Canonical aponta para o próprio URL filtrado — cada
+// combinação de filtros é uma página de resultados válida e indexável.
+export async function generateMetadata({ searchParams }: VagasPageProps): Promise<Metadata> {
+    const params = await searchParams
+    const location = params.location ?? ""
+    const category = params.category ?? ""
+    const type = params.type ?? ""
+    const page = Number(params.page) > 0 ? Number(params.page) : 1
+
+    const parts: string[] = []
+    if (category) parts.push(`de ${category}`)
+    if (type) parts.push(type)
+    if (location) parts.push(`em ${location}`)
+
+    const title = parts.length > 0 ? `Vagas ${parts.join(" ")}` : "Vagas disponíveis"
+    const description =
+        parts.length > 0
+            ? `Explora vagas ${parts.join(" ")} em empresas verificadas na Kukalakala.`
+            : "Explora vagas verificadas de empresas que estão a contratar agora na Kukalakala."
+
+    const canonicalParams = new URLSearchParams()
+    if (params.q) canonicalParams.set("q", params.q)
+    if (location) canonicalParams.set("location", location)
+    if (category) canonicalParams.set("category", category)
+    if (type) canonicalParams.set("type", type)
+    if (page > 1) canonicalParams.set("page", String(page))
+    const canonicalQuery = canonicalParams.toString()
+
+    return {
+        title,
+        description,
+        alternates: {
+            canonical: canonicalQuery ? `/vagas?${canonicalQuery}` : "/vagas"
+        },
+        openGraph: { title, description },
+        twitter: { title, description }
+    }
 }
 
 export default async function VagasPage({ searchParams }: VagasPageProps) {

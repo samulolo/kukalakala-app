@@ -2,6 +2,7 @@ import Link from "next/link"
 import { MapPin, Clock, Eye } from "lucide-react"
 import type { Job } from "@/lib/supabase/jobs"
 import ApplyButton from "./ApplyButton"
+import { DollarSign } from "lucide-react"
 
 interface JobCardProps {
     job: Job
@@ -44,9 +45,12 @@ export default function JobCard({ job, isAuthenticated = false, isCandidate = fa
                 </span>
             </div>
 
-            <div className="flex items-center justify-between mt-5 pt-4 border-t border-slate-100">
-                <span className="text-sm font-medium text-slate-900">{job.salaryRange}</span>
-                <div className="flex items-center gap-4">
+            <div className="flex gap-2 flex-col mt-5 pt-4 border-t border-slate-100">
+                <span className="text-sm font-medium text-slate-900 flex gap-3 items-center">
+                    <DollarSign  className="w-3.5 h-3.5 text-slate-500" strokeWidth={1.5}/>
+                    {job.salaryRange}
+                    </span>
+                <div className="flex items-center  gap-4">
                     <Link
                         href={`/vagas/${job.id}`}
                         className="inline-flex items-center gap-1 text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
