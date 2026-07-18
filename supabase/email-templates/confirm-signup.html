@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Confirma o teu registo</title>
+</head>
+<body style="margin:0; padding:0; background-color:#f8fafc; font-family:Helvetica, Arial, sans-serif;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f8fafc; padding:32px 0;">
+        <tr>
+            <td align="center">
+                <table role="presentation" width="480" cellpadding="0" cellspacing="0" style="max-width:480px; width:100%; background-color:#ffffff; border-radius:12px; overflow:hidden; border:1px solid #e2e8f0;">
+                    <tr>
+                        <td style="padding:32px 32px 8px 32px;">
+                            <p style="margin:0; font-size:18px; font-weight:700; color:#1d4ed8;">Kukalakala</p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:8px 32px 0 32px;">
+                            <h1 style="margin:0 0 16px 0; font-size:20px; color:#0f172a;">Confirma o teu registo</h1>
+                            <p style="margin:0 0 16px 0; font-size:14px; line-height:22px; color:#334155;">
+                                Olá,
+                            </p>
+                            <p style="margin:0 0 16px 0; font-size:14px; line-height:22px; color:#334155;">
+                                Recebemos um pedido de registo com este email na Kukalakala. Confirma o teu email para ativares a conta e começares a publicar vagas.
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td align="center" style="padding:8px 32px 24px 32px;">
+                            <table role="presentation" cellpadding="0" cellspacing="0">
+                                <tr>
+                                    <td align="center" style="border-radius:8px; background-color:#1d4ed8;">
+                                        <a href="{{ .ConfirmationURL }}" target="_blank" style="display:inline-block; padding:12px 24px; font-size:14px; font-weight:600; color:#ffffff; text-decoration:none; border-radius:8px;">
+                                            Confirmar email
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 32px 24px 32px;">
+                            <p style="margin:0; font-size:12px; line-height:18px; color:#94a3b8;">
+                                Se o botão não funcionar, copia e cola este link no navegador:<br />
+                                <a href="{{ .ConfirmationURL }}" style="color:#1d4ed8; word-break:break-all;">{{ .ConfirmationURL }}</a>
+                            </p>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td style="padding:0 32px 32px 32px; border-top:1px solid #e2e8f0;">
+                            <p style="margin:24px 0 0 0; font-size:12px; line-height:18px; color:#94a3b8;">
+                                Se não foste tu a pedir este registo, ignora este email — a conta não será ativada.
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

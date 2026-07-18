@@ -7,6 +7,9 @@ import Input from "@/components/ui/Input"
 import Link from "next/link"
 import { supabase } from "@/supabase/client"
 
+
+const PASSWORD_REGEX = /^(?=.*[A-Z])(?=.*\d)(?=.*[a-z])(?=.*[@*#\.$%&]).{8,}/;
+
 export default function CompanyRegisterForm() {
     const router = useRouter()
 
@@ -40,8 +43,11 @@ export default function CompanyRegisterForm() {
         if (!formData.email.trim()) {
             newErrors.email = "Email é obrigatório"
         }
-        if (formData.password.length < 6) {
-            newErrors.password = "Senha deve ter pelo menos 6 caracteres"
+        // if (formData.password.length < 8) {
+        //     newErrors.password = "Senha deve ter pelo menos 6 caracteres"
+        // }
+        if (!PASSWORD_REGEX.test(formData.password)){
+            newErrors.password = "A password deve ter 1 número um caractere especial, 1 letra minuscula e 1 uma maiuscula e no máximo 8 caracteres"
         }
         if (formData.password !== formData.confirmPassword) {
             newErrors.confirmPassword = "As senhas não coincidem"
@@ -79,7 +85,16 @@ export default function CompanyRegisterForm() {
             })
 
             if (error) {
-                setSubmitError(error.message)
+                // Nem sempre error.message vem preenchido de forma útil —
+                // em alguns erros 5xx do GoTrue (ex: falha a enviar o email
+                // de confirmação), o cliente devolve "{}" literal em vez de
+                // uma mensagem legível. Nesses casos mostramos um texto
+                // genérico em vez de expor esse "{}" à pessoa.
+                const message = error.message && error.message !== "{}"
+                    ? error.message
+                    : "Não foi possível criar a conta. Tenta novamente dentro de alguns minutos ou contacta o suporte."
+                setSubmitError(message)
+                console.error("Erro no registo de empresa: ", error)
                 return
             }
 
