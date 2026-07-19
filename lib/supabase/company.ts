@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 
 export interface Company {
     id: string
@@ -46,7 +46,7 @@ function mapCompanyRow(row: CompanyRow): Company {
 // sessão ou linha em "companies" (ex: antes de terminar o registo).
 export async function getMyCompany(): Promise<Company | null> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return null
 
     const { data, error } = await supabase
@@ -73,7 +73,7 @@ export async function getMyCompany(): Promise<Company | null> {
 // Grava (cria ou atualiza) a empresa da conta autenticada.
 export async function upsertMyCompany(input: CompanyInput): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
 
     if (!user) {
         return { error: "Não foi possível identificar a empresa" }

@@ -1,11 +1,14 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { MapPin, Briefcase, Eye } from "lucide-react"
+import { MapPin, Briefcase, Eye, Sparkles } from "lucide-react"
 import type { CompanyApplicant } from "@/lib/supabase/company-applications"
 import type { ApplicationStatus } from "@/lib/supabase/applications"
+import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
 import { changeApplicationStatus } from "./actions"
+import { getCompanyApplicationAiFit } from "@/lib/actions/ai-fit"
 import CandidateDetailsDrawer from "./CandidateDetailsDrawer"
+import AiFitDrawer from "./AiFitDrawer"
 
 const statusOptions: ApplicationStatus[] = ["Em análise", "Entrevista", "Aprovado", "Rejeitado"]
 
@@ -14,6 +17,10 @@ export default function CandidaturasClient({ applications }: { applications: Com
     const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all")
     const [savingId, setSavingId] = useState<string | null>(null)
     const [selectedId, setSelectedId] = useState<string | null>(null)
+    const [aiSelectedId, setAiSelectedId] = useState<string | null>(null)
+    const [aiLoading, setAiLoading] = useState(false)
+    const [aiError, setAiError] = useState<string | null>(null)
+    const [aiResult, setAiResult] = useState<AiFitAnalysis | null>(null)
 
     const jobs = useMemo(() => {
         const map = new Map<string, string>()
@@ -28,11 +35,32 @@ export default function CandidaturasClient({ applications }: { applications: Com
     })
 
     const selectedApplicant = applications.find((a) => a.id === selectedId) ?? null
+    const aiSelectedApplicant = applications.find((a) => a.id === aiSelectedId) ?? null
 
     const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {
         setSavingId(applicationId)
         await changeApplicationStatus(applicationId, status)
         setSavingId(null)
+    }
+
+    const handleOpenAiFit = async (applicationId: string) => {
+        setAiSelectedId(applicationId)
+        setAiLoading(true)
+        setAiError(null)
+        setAiResult(null)
+
+        try {
+            const { result, error } = await getCompanyApplicationAiFit(applicationId)
+            if (error) {
+                setAiError(error)
+            } else {
+                setAiResult(result)
+            }
+        } catch {
+            setAiError("Não foi possível gerar a análise, tenta novamente.")
+        } finally {
+            setAiLoading(false)
+        }
     }
 
     const selectClass =
@@ -102,6 +130,15 @@ export default function CandidaturasClient({ applications }: { applications: Com
                                     Ver detalhes
                                 </button>
 
+                                <button
+                                    type="button"
+                                    onClick={() => handleOpenAiFit(application.id)}
+                                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0"
+                                >
+                                    <Sparkles className="w-4 h-4" strokeWidth={1.75} />
+                                    Análise IA
+                                </button>
+
                                 <select
                                     value={application.status}
                                     onChange={(e) => handleStatusChange(application.id, e.target.value as ApplicationStatus)}
@@ -129,6 +166,14 @@ export default function CandidaturasClient({ applications }: { applications: Com
                 onClose={() => setSelectedId(null)}
                 onStatusChange={handleStatusChange}
                 saving={savingId === selectedId}
+            />
+
+            <AiFitDrawer
+                applicant={aiSelectedApplicant}
+                onClose={() => setAiSelectedId(null)}
+                result={aiResult}
+                loading={aiLoading}
+                error={aiError}
             />
         </>
     )

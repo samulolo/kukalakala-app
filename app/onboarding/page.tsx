@@ -1,9 +1,8 @@
-import { createClient } from "@/supabase/server"
+import { getVerifiedUser } from "@/supabase/server"
 import OnboardingClient from "./OnboardingClient"
 
 export default async function OnboardingPage() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
 
     // O Google/LinkedIn já nos dão o nome do utilizador — pré-preenchemos
     // com isso para não obrigar a reescrever algo que já sabemos, e para

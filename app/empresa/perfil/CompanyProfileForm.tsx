@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Globe, MapPin, Building2, Check } from "lucide-react"
 import type { Company } from "@/lib/supabase/company"
 import { saveCompany } from "./actions"
+import { COMPANY_SECTORS } from "@/lib/company-sectors"
 
 export default function CompanyProfileForm({ initialCompany }: { initialCompany: Company | null }) {
     const [form, setForm] = useState({
@@ -30,11 +31,19 @@ export default function CompanyProfileForm({ initialCompany }: { initialCompany:
         "w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
 
     const handleChange = (field: keyof typeof form) => (
-        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
+        e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
     ) => {
         setForm((prev) => ({ ...prev, [field]: e.target.value }))
         setSaved(false)
     }
+
+    // Se o valor guardado for antigo (texto livre, de antes deste select
+    // existir) e não estiver na lista, mantemo-lo como opção para não
+    // apagar silenciosamente o que a empresa já tinha preenchido.
+    const sectorOptions =
+        form.sector && !COMPANY_SECTORS.includes(form.sector)
+            ? [form.sector, ...COMPANY_SECTORS]
+            : COMPANY_SECTORS
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -114,13 +123,16 @@ export default function CompanyProfileForm({ initialCompany }: { initialCompany:
                     </div>
                     <div>
                         <label className="block text-sm font-medium text-slate-700 mb-1.5">Setor</label>
-                        <input
-                            type="text"
+                        <select
                             value={form.sector}
                             onChange={handleChange("sector")}
-                            placeholder="Tecnologia, Finanças, Retalho..."
                             className={inputClass}
-                        />
+                        >
+                            <option value="">Seleciona o setor</option>
+                            {sectorOptions.map((sector) => (
+                                <option key={sector} value={sector}>{sector}</option>
+                            ))}
+                        </select>
                     </div>
                 </div>
 

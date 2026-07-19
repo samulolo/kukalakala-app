@@ -34,6 +34,10 @@ export default async function DashboardHomePage() {
     const completion = completionFromChecklist(checklist)
 
     const interviewCount = applications.filter((a) => a.status === "Entrevista").length
+    // getMyApplications() já vem ordenado por mais recente primeiro — a
+    // rota principal só mostra uma pré-visualização; a lista completa
+    // fica em /dashboard/candidaturas.
+    const recentApplications = applications.slice(0, 3)
 
     return (
         <div className="space-y-6">
@@ -119,13 +123,21 @@ export default async function DashboardHomePage() {
                 <div className="lg:col-span-2 p-6 rounded-2xl border border-slate-200 bg-white shadow-sm">
                     <div className="flex items-center justify-between mb-4">
                         <h2 className="text-base font-semibold text-slate-900">Candidaturas recentes</h2>
-                        <FavoritesTrigger className="text-xs font-medium text-blue-700 hover:text-blue-800 transition-colors">
-                            Ver favoritas
-                        </FavoritesTrigger>
+                        <div className="flex items-center gap-4">
+                            <Link
+                                href="/dashboard/candidaturas"
+                                className="text-xs font-medium text-blue-700 hover:text-blue-800 transition-colors"
+                            >
+                                Ver todas
+                            </Link>
+                            <FavoritesTrigger className="text-xs font-medium text-blue-700 hover:text-blue-800 transition-colors">
+                                Ver favoritas
+                            </FavoritesTrigger>
+                        </div>
                     </div>
 
-                    {applications.length > 0 ? (
-                        <RecentApplicationsList applications={applications} />
+                    {recentApplications.length > 0 ? (
+                        <RecentApplicationsList applications={recentApplications} />
                     ) : (
                         <div className="text-center py-12">
                             <p className="text-slate-600 font-light text-sm">

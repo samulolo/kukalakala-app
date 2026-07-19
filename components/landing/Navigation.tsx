@@ -1,11 +1,10 @@
 import Link from "next/link"
 import { LayoutDashboard } from "lucide-react"
-import { createClient } from "@/supabase/server"
+import { getVerifiedUser } from "@/supabase/server"
 import MobileMenu from "./MobileMenu"
 
 export default async function Navigation() {
-    const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
 
     const isCompany = user?.user_metadata?.role === "company"
     const dashboardHref = isCompany ? "/empresa" : "/dashboard"

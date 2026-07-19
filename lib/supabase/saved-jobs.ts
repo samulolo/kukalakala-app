@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 import { getJobsByIds, type Job } from "./jobs"
 
 // Ids das vagas guardadas pelo candidato autenticado. Lista vazia se
@@ -6,7 +6,7 @@ import { getJobsByIds, type Job } from "./jobs"
 // visitantes não autenticados).
 export async function getSavedJobIds(): Promise<string[]> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return []
 
     const { data, error } = await supabase

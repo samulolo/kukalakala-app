@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 
 export const CV_BUCKET = "cvs"
 
@@ -12,7 +12,7 @@ export const CV_BUCKET = "cvs"
 // falharia, mas também não faria nada, silenciosamente.
 export async function saveCvMetadata(filename: string, path: string): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não autenticado" }
 
     const { error } = await supabase
@@ -29,7 +29,7 @@ export async function saveCvMetadata(filename: string, path: string): Promise<{ 
 // Remove o ficheiro do Storage e limpa os metadados no perfil.
 export async function removeCv(path: string): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não autenticado" }
 
     const { error: storageError } = await supabase.storage.from(CV_BUCKET).remove([path])

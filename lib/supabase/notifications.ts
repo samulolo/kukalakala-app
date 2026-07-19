@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 
 export type NotificationType = "application_received" | "application_status_changed" | "new_message"
 
@@ -38,7 +38,7 @@ function mapNotificationRow(row: NotificationRow): Notification {
 // empresa — RLS já restringe a "recipient_id = auth.uid()").
 export async function getMyNotifications(limit = 20): Promise<Notification[]> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return []
 
     const { data, error } = await supabase
@@ -58,7 +58,7 @@ export async function getMyNotifications(limit = 20): Promise<Notification[]> {
 
 export async function getUnreadNotificationCount(): Promise<number> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return 0
 
     const { count, error } = await supabase
@@ -92,7 +92,7 @@ export async function markNotificationRead(id: string): Promise<{ error: string 
 
 export async function markAllNotificationsRead(): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não autenticado" }
 
     const { error } = await supabase

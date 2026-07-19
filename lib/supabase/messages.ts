@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 import { notifyNewMessage } from "./notify"
 
 export interface Message {
@@ -53,7 +53,7 @@ export async function getConversation(applicationId: string): Promise<Message[]>
 // enviadas pelo utilizador autenticado.
 export async function markConversationRead(applicationId: string): Promise<void> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return
 
     const { error } = await supabase
@@ -70,7 +70,7 @@ export async function markConversationRead(applicationId: string): Promise<void>
 // (dentro da app + email) o outro participante da conversa.
 export async function sendMessage(applicationId: string, body: string): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não autenticado" }
 
     const trimmed = body.trim()

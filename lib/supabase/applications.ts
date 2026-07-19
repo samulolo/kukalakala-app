@@ -1,5 +1,6 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 import { formatRelativeTime } from "@/lib/format-relative-time"
+import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
 
 export type ApplicationStatus = "Em análise" | "Entrevista" | "Aprovado" | "Rejeitado"
 
@@ -35,7 +36,7 @@ function mapApplicationRow(row: ApplicationRow): Application {
 // vazia se não houver sessão.
 export async function getMyApplications(): Promise<Application[]> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return []
 
     const { data, error } = await supabase
@@ -50,6 +51,138 @@ export async function getMyApplications(): Promise<Application[]> {
     }
 
     return (data ?? []).map((row) => mapApplicationRow(row as unknown as ApplicationRow))
+}
+
+export interface MyApplicationDetail {
+    id: string
+    jobId: string
+    cachedAiFit: AiFitAnalysis | null
+}
+
+interface MyApplicationAiRow {
+    id: string
+    job_id: string
+    ai_score: number | null
+    ai_fit_level: string | null
+    ai_summary: string | null
+    ai_strengths: string[] | null
+    ai_weaknesses: string[] | null
+    ai_improvements: string[] | null
+    ai_analyzed_at: string | null
+}
+
+// Candidatura do candidato autenticado, com o resultado de IA já
+// guardado (se existir) — usada pelo painel "Feedback de IA" para
+// evitar chamar o modelo outra vez quando já há uma análise em cache
+// (ver lib/actions/ai-fit.ts).
+export async function getMyApplicationById(applicationId: string): Promise<MyApplicationDetail | null> {
+    const supabase = await createClient()
+    const { data: { user } } = await getVerifiedUser()
+    if (!user) return null
+
+    const { data, error } = await supabase
+        .from("applications")
+        .select("id, job_id, ai_score, ai_fit_level, ai_summary, ai_strengths, ai_weaknesses, ai_improvements, ai_analyzed_at")
+        .eq("id", applicationId)
+        .eq("candidate_id", user.id)
+        .single()
+
+    if (error || !data) {
+        console.error("Erro ao carregar candidatura: ", error)
+        return null
+    }
+
+    const row = data as unknown as MyApplicationAiRow
+    const cachedAiFit: AiFitAnalysis | null =
+        row.ai_analyzed_at && row.ai_score !== null && row.ai_fit_level && row.ai_summary
+            ? {
+                score: row.ai_score,
+                fitLevel: row.ai_fit_level as AiFitAnalysis["fitLevel"],
+                summary: row.ai_summary,
+                strengths: row.ai_strengths ?? [],
+                weaknesses: row.ai_weaknesses ?? [],
+                improvements: row.ai_improvements ?? []
+            }
+            : null
+
+    return { id: row.id, jobId: row.job_id, cachedAiFit }
+}
+
+export interface ApplicationFilters {
+    status?: ApplicationStatus | ""
+    q?: string
+    page?: number
+}
+
+export interface ApplicationsPage {
+    applications: Application[]
+    total: number
+    page: number
+    pageSize: number
+    totalPages: number
+}
+
+const APPLICATIONS_PAGE_SIZE = 10
+
+// Evita que caracteres com significado especial na sintaxe de filtros
+// do PostgREST (usada pelo .or()) partam a query de pesquisa — mesma
+// lógica de lib/supabase/jobs.ts, duplicada por não termos um sítio
+// partilhado só para isto.
+function sanitizeSearchTerm(term: string): string {
+    return term.replace(/[,()%]/g, " ").trim()
+}
+
+// Candidaturas do candidato autenticado, com filtro por estado, pesquisa
+// por vaga/empresa e paginação — usada pela rota /dashboard/candidaturas
+// (filtros e página atual vivem no URL, tal como em getJobsPage).
+export async function getMyApplicationsPage(filters: ApplicationFilters): Promise<ApplicationsPage> {
+    const supabase = await createClient()
+    const { data: { user } } = await getVerifiedUser()
+    const page = filters.page && filters.page > 0 ? Math.floor(filters.page) : 1
+
+    if (!user) {
+        return { applications: [], total: 0, page, pageSize: APPLICATIONS_PAGE_SIZE, totalPages: 0 }
+    }
+
+    const from = (page - 1) * APPLICATIONS_PAGE_SIZE
+    const to = from + APPLICATIONS_PAGE_SIZE - 1
+
+    // "!inner" para podermos filtrar/pesquisar em jobs.title e
+    // jobs.company através de {foreignTable: "jobs"} — toda a candidatura
+    // tem sempre uma vaga associada, por isso não perde nenhuma linha
+    // face ao embed normal.
+    let query = supabase
+        .from("applications")
+        .select("id, job_id, status, created_at, jobs!inner(title, company)", { count: "exact" })
+        .eq("candidate_id", user.id)
+
+    if (filters.status) {
+        query = query.eq("status", filters.status)
+    }
+
+    const q = filters.q ? sanitizeSearchTerm(filters.q) : ""
+    if (q) {
+        query = query.or(`title.ilike.%${q}%,company.ilike.%${q}%`, { foreignTable: "jobs" })
+    }
+
+    const { data, error, count } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to)
+
+    if (error) {
+        console.error("Erro ao carregar candidaturas: ", error)
+        return { applications: [], total: 0, page, pageSize: APPLICATIONS_PAGE_SIZE, totalPages: 0 }
+    }
+
+    const total = count ?? 0
+
+    return {
+        applications: (data ?? []).map((row) => mapApplicationRow(row as unknown as ApplicationRow)),
+        total,
+        page,
+        pageSize: APPLICATIONS_PAGE_SIZE,
+        totalPages: Math.max(1, Math.ceil(total / APPLICATIONS_PAGE_SIZE))
+    }
 }
 
 export interface StatusBreakdownItem {
@@ -119,7 +252,7 @@ function emptyTimeline(): ApplicationsTimeline {
 // contagem mensal nos últimos 6 meses, para os gráficos da página Início.
 export async function getMyApplicationsTimeline(): Promise<ApplicationsTimeline> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return emptyTimeline()
 
     const { data, error } = await supabase
@@ -148,7 +281,7 @@ export async function getMyApplicationsTimeline(): Promise<ApplicationsTimeline>
 
 export async function getAppliedJobIds(): Promise<string[]> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return []
 
     const { data, error } = await supabase
@@ -176,7 +309,7 @@ export interface ViewerApplicationState {
 // constraint unique(candidate_id, job_id) na BD é o backstop final).
 export async function getViewerApplicationState(): Promise<ViewerApplicationState> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
 
     if (!user) {
         return { isAuthenticated: false, isCandidate: false, appliedJobIds: [] }

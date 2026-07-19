@@ -1,4 +1,4 @@
-import { Home, Sparkles, User, type LucideIcon } from "lucide-react"
+import { Home, Send, Sparkles, User, type LucideIcon } from "lucide-react"
 
 export interface NavItem {
     label: string
@@ -19,6 +19,14 @@ export const navItems: NavItem[] = [
         eyebrow: "Painel",
         title: "Início",
         subtitle: "O resumo da tua atividade e do teu perfil"
+    },
+    {
+        label: "Candidaturas",
+        href: "/dashboard/candidaturas",
+        icon: Send,
+        eyebrow: "Atividade",
+        title: "As tuas candidaturas",
+        subtitle: "Todas as vagas a que já te candidataste, com o estado atual de cada uma"
     },
     {
         label: "Recomendadas",

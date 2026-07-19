@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 import type { Profile, ProfileInput } from "@/lib/profile-utils"
 
 export type { Profile, ChecklistItem, ProfileInput } from "@/lib/profile-utils"
@@ -37,7 +37,7 @@ function mapProfileRow(row: ProfileRow): Profile {
 // existir sessão ou linha em "profiles" (ex: antes de terminar o onboarding).
 export async function getMyProfile(): Promise<Profile | null> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return null
 
     const { data, error } = await supabase
@@ -64,7 +64,7 @@ export async function getMyProfile(): Promise<Profile | null> {
 // Grava (cria ou atualiza) o perfil do utilizador autenticado.
 export async function upsertMyProfile(input: ProfileInput): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
 
     if (!user) {
         return { error: "Não foi possível identificar o utilizador" }

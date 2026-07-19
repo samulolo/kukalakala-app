@@ -1,12 +1,12 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 import { notifyNewApplication } from "@/lib/supabase/notify"
 
 export async function saveJob(jobId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Precisas de iniciar sessão" }
 
     const { error } = await supabase
@@ -22,7 +22,7 @@ export async function saveJob(jobId: string) {
 
 export async function applyToJob(jobId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Precisas de iniciar sessão" }
 
     const { data: inserted, error } = await supabase
@@ -50,7 +50,7 @@ export async function applyToJob(jobId: string) {
 
 export async function unsaveJob(jobId: string) {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Precisas de iniciar sessão" }
 
     const { error } = await supabase

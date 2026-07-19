@@ -1,13 +1,12 @@
 import { redirect } from "next/navigation"
 import Link from "next/link"
-import { createClient } from "@/supabase/server"
+import { getVerifiedUser } from "@/supabase/server"
 import { getMyProfile } from "@/lib/supabase/profile"
 
 export default async function OnboardingLayout({
     children
 }: Readonly<{ children: React.ReactNode }>) {
-    const supabase = await createClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const { data: { user }, error } = await getVerifiedUser()
 
     // Defesa extra: mesmo que o proxy.ts já proteja "/onboarding", cada
     // página/layout deve validar a sessão por si própria.

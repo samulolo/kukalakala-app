@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 import type { ApplicationStatus } from "./applications"
 
 export interface StatusBreakdownItem {
@@ -104,7 +104,7 @@ function buildEmptyLast7Days(): DayCount[] {
 // suas vagas e candidaturas (RLS já restringe às suas próprias vagas).
 export async function getCompanyMetrics(): Promise<CompanyMetrics> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return emptyMetrics()
 
     const { data: jobRows, error: jobsError } = await supabase

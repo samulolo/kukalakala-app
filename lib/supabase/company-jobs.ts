@@ -1,4 +1,4 @@
-import { createClient } from "@/supabase/server"
+import { createClient, getVerifiedUser } from "@/supabase/server"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 
 export interface CompanyJob {
@@ -76,7 +76,7 @@ function generateJobId(title: string): string {
 // com a contagem de candidaturas de cada uma.
 export async function getCompanyJobs(): Promise<CompanyJob[]> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return []
 
     const { data: jobRows, error } = await supabase
@@ -109,7 +109,7 @@ export async function getCompanyJobs(): Promise<CompanyJob[]> {
 
 export async function createCompanyJob(input: CompanyJobInput): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não foi possível identificar a empresa" }
 
     const { data: company } = await supabase
@@ -142,7 +142,7 @@ export async function createCompanyJob(input: CompanyJobInput): Promise<{ error:
 
 export async function updateCompanyJob(jobId: string, input: CompanyJobInput): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não foi possível identificar a empresa" }
 
     const { error } = await supabase
@@ -170,7 +170,7 @@ export async function updateCompanyJob(jobId: string, input: CompanyJobInput): P
 
 export async function deleteCompanyJob(jobId: string): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não foi possível identificar a empresa" }
 
     const { error } = await supabase
@@ -189,7 +189,7 @@ export async function deleteCompanyJob(jobId: string): Promise<{ error: string |
 
 export async function toggleCompanyJobActive(jobId: string, isActive: boolean): Promise<{ error: string | null }> {
     const supabase = await createClient()
-    const { data: { user } } = await supabase.auth.getUser()
+    const { data: { user } } = await getVerifiedUser()
     if (!user) return { error: "Não foi possível identificar a empresa" }
 
     const { error } = await supabase

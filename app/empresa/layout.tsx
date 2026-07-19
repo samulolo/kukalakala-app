@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation"
-import { createClient } from "@/supabase/server"
+import { getVerifiedUser } from "@/supabase/server"
 import { getMyCompany, upsertMyCompany } from "@/lib/supabase/company"
 import { getMyNotifications, getUnreadNotificationCount } from "@/lib/supabase/notifications"
 import Sidebar from "@/components/empresa/Sidebar"
@@ -11,8 +11,7 @@ import ToastViewport from "@/components/dashboard/ToastViewport"
 export default async function EmpresaLayout({
     children
 }: Readonly<{ children: React.ReactNode }>) {
-    const supabase = await createClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const { data: { user }, error } = await getVerifiedUser()
 
     // Defesa extra: mesmo que o proxy.ts já proteja "/empresa", cada
     // página/layout deve validar a sessão por si própria.

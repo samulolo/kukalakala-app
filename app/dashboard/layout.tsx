@@ -1,7 +1,7 @@
 
 
 import { redirect } from "next/navigation"
-import { createClient } from "@/supabase/server"
+import { getVerifiedUser } from "@/supabase/server"
 import { getSavedJobs } from "@/lib/supabase/saved-jobs"
 import { getAppliedJobIds } from "@/lib/supabase/applications"
 import { getMyNotifications, getUnreadNotificationCount } from "@/lib/supabase/notifications"
@@ -18,8 +18,7 @@ import OnboardingSkippedNotice from "@/components/dashboard/OnboardingSkippedNot
 export default async function DashboardLayout({
     children
 }: Readonly<{ children: React.ReactNode }>) {
-    const supabase = await createClient()
-    const { data: { user }, error } = await supabase.auth.getUser()
+    const { data: { user }, error } = await getVerifiedUser()
 
     // Defesa extra: mesmo que o proxy.ts já proteja "/dashboard", cada
     // página/layout deve validar a sessão por si própria.
