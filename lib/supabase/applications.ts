@@ -11,6 +11,10 @@ export interface Application {
     company: string
     status: ApplicationStatus
     appliedAt: string
+    // Data ISO em bruto (além de "appliedAt", já formatado como texto
+    // relativo) — usada para calcular métricas reais na página Início,
+    // como quantas candidaturas foram enviadas este mês.
+    createdAt: string
 }
 
 interface ApplicationRow {
@@ -28,7 +32,8 @@ function mapApplicationRow(row: ApplicationRow): Application {
         jobTitle: row.jobs?.title ?? "Vaga",
         company: row.jobs?.company ?? "",
         status: row.status,
-        appliedAt: formatRelativeTime(row.created_at)
+        appliedAt: formatRelativeTime(row.created_at),
+        createdAt: row.created_at
     }
 }
 

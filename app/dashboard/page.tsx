@@ -1,8 +1,8 @@
 import Link from "next/link"
-import { CheckCircle2, Circle, ArrowUpRight, Send, MessageSquare, TrendingUp, Eye } from "lucide-react"
-import { stats } from "@/lib/dashboard-data"
+import { CheckCircle2, Circle, ArrowUpRight, Send, MessageSquare, TrendingUp, Heart } from "lucide-react"
 import { getMyProfile, checklistFromProfile, completionFromChecklist } from "@/lib/supabase/profile"
 import { getMyApplications, getMyApplicationsTimeline } from "@/lib/supabase/applications"
+import { getSavedJobIds } from "@/lib/supabase/saved-jobs"
 import StatusBadge from "@/components/dashboard/StatusBadge"
 import StatCard from "@/components/dashboard/StatCard"
 import FavoritesTrigger from "@/components/dashboard/FavoritesTrigger"
@@ -16,10 +16,11 @@ const barColors: Record<string, string> = {
 }
 
 export default async function DashboardHomePage() {
-    const [profile, applications, timeline] = await Promise.all([
+    const [profile, applications, timeline, savedJobIds] = await Promise.all([
         getMyProfile(),
         getMyApplications(),
-        getMyApplicationsTimeline()
+        getMyApplicationsTimeline(),
+        getSavedJobIds()
     ])
 
     const name = profile?.fullName || "Candidato(a)"
@@ -34,6 +35,20 @@ export default async function DashboardHomePage() {
     const completion = completionFromChecklist(checklist)
 
     const interviewCount = applications.filter((a) => a.status === "Entrevista").length
+
+    // Taxa de resposta real: candidaturas que já saíram de "Em análise"
+    // (a empresa reagiu, seja para entrevista, aprovação ou rejeição)
+    // sobre o total. Sem seta de tendência — não guardamos histórico de
+    // estados passados para comparar com um período anterior.
+    const respondedCount = applications.filter((a) => a.status !== "Em análise").length
+    const responseRate = applications.length > 0 ? Math.round((respondedCount / applications.length) * 100) : 0
+
+    const now = new Date()
+    const appliedThisMonthCount = applications.filter((a) => {
+        const created = new Date(a.createdAt)
+        return created.getFullYear() === now.getFullYear() && created.getMonth() === now.getMonth()
+    }).length
+
     // getMyApplications() já vem ordenado por mais recente primeiro — a
     // rota principal só mostra uma pré-visualização; a lista completa
     // fica em /dashboard/candidaturas.
@@ -47,7 +62,7 @@ export default async function DashboardHomePage() {
                     icon={Send}
                     label="Candidaturas enviadas"
                     value={String(applications.length)}
-                    trend={{ value: "+2 este mês", positive: true }}
+                    trend={appliedThisMonthCount > 0 ? { value: `+${appliedThisMonthCount} este mês`, positive: true } : undefined}
                 />
                 <StatCard
                     icon={MessageSquare}
@@ -57,14 +72,12 @@ export default async function DashboardHomePage() {
                 <StatCard
                     icon={TrendingUp}
                     label="Taxa de resposta"
-                    value={`${stats.responseRate}%`}
-                    trend={{ value: stats.responseRateTrend, positive: true }}
+                    value={`${responseRate}%`}
                 />
                 <StatCard
-                    icon={Eye}
-                    label="Perfil visualizado"
-                    value={String(stats.profileViews)}
-                    trend={{ value: stats.profileViewsTrend, positive: true }}
+                    icon={Heart}
+                    label="Vagas favoritas"
+                    value={String(savedJobIds.length)}
                 />
             </div>
 
