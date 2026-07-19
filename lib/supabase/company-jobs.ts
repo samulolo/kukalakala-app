@@ -1,5 +1,6 @@
 import { createClient, getVerifiedUser } from "@/supabase/server"
 import { formatRelativeTime } from "@/lib/format-relative-time"
+import { matchAndNotifyJobAlerts } from "./job-alerts"
 
 export interface CompanyJob {
     id: string
@@ -118,10 +119,13 @@ export async function createCompanyJob(input: CompanyJobInput): Promise<{ error:
         .eq("id", user.id)
         .maybeSingle()
 
+    const jobId = generateJobId(input.title)
+    const companyName = company?.company_name || "Empresa"
+
     const { error } = await supabase.from("jobs").insert({
-        id: generateJobId(input.title),
+        id: jobId,
         company_id: user.id,
-        company: company?.company_name || "Empresa",
+        company: companyName,
         title: input.title,
         location: input.location,
         type: input.type,
@@ -136,6 +140,13 @@ export async function createCompanyJob(input: CompanyJobInput): Promise<{ error:
         console.error("Erro ao criar vaga: ", error)
         return { error: error.message }
     }
+
+    // Best-effort: avisar por email quem tem um alerta de vagas que
+    // bate certo com esta vaga nova. Nunca deve bloquear nem falhar a
+    // publicação em si.
+    matchAndNotifyJobAlerts(jobId, input.title, companyName, input.location).catch((err) => {
+        console.error("Erro ao notificar alertas de vagas: ", err)
+    })
 
     return { error: null }
 }

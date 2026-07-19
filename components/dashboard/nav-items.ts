@@ -1,4 +1,4 @@
-import { Home, Send, Sparkles, User, type LucideIcon } from "lucide-react"
+import { Home, Send, Sparkles, User, Bell, type LucideIcon } from "lucide-react"
 
 export interface NavItem {
     label: string
@@ -35,6 +35,14 @@ export const navItems: NavItem[] = [
         eyebrow: "Para ti",
         title: "Vagas recomendadas",
         subtitle: "Com base no teu perfil e candidaturas anteriores"
+    },
+    {
+        label: "Alertas",
+        href: "/dashboard/alertas",
+        icon: Bell,
+        eyebrow: "Notificações",
+        title: "Alertas de vagas",
+        subtitle: "Recebe um email sempre que surgir uma vaga nova que combine com uma pesquisa tua"
     },
     {
         label: "Perfil",

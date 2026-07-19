@@ -2,6 +2,7 @@ import { resend, EMAIL_FROM } from "./resend"
 import ApplicationReceivedEmail from "@/emails/ApplicationReceivedEmail"
 import StatusChangedEmail from "@/emails/StatusChangedEmail"
 import NewMessageEmail from "@/emails/NewMessageEmail"
+import JobAlertEmail from "@/emails/JobAlertEmail"
 
 // Todas as funções abaixo são "best effort": nunca lançam erro para
 // não bloquear a ação principal do utilizador (candidatar-se, mudar
@@ -65,6 +66,35 @@ export async function sendStatusChangedEmail(params: {
         })
     } catch (err) {
         console.error("Erro ao enviar email de mudança de estado: ", err)
+    }
+}
+
+export async function sendJobAlertEmail(params: {
+    to: string
+    candidateName: string
+    jobId: string
+    jobTitle: string
+    company: string
+    location: string
+}): Promise<void> {
+    if (!canSendEmail()) return
+    try {
+        await resend.emails.send({
+            from: EMAIL_FROM,
+            to: params.to,
+            subject: `Nova vaga para ti: ${params.jobTitle}`,
+            react: (
+                <JobAlertEmail
+                    candidateName={params.candidateName}
+                    jobId={params.jobId}
+                    jobTitle={params.jobTitle}
+                    company={params.company}
+                    location={params.location}
+                />
+            )
+        })
+    } catch (err) {
+        console.error("Erro ao enviar email de alerta de vaga: ", err)
     }
 }
 

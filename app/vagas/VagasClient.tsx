@@ -2,11 +2,13 @@
 
 import { useState, useTransition } from "react"
 import { usePathname, useRouter } from "next/navigation"
-import { Search } from "lucide-react"
+import Link from "next/link"
+import { Search, BellPlus, Check } from "lucide-react"
 import JobCard from "@/components/landing/JobCard"
 import Pagination from "./Pagination"
 import type { JobFilterOptions, JobsPage } from "@/lib/supabase/jobs"
 import type { ViewerApplicationState } from "@/lib/supabase/applications"
+import { createJobAlertFromSearch } from "@/lib/actions/job-alerts"
 
 interface Filters {
     q: string
@@ -32,6 +34,8 @@ export default function VagasClient({ jobsPage, filterOptions, initialFilters, v
     const [location, setLocation] = useState(initialFilters.location)
     const [category, setCategory] = useState(initialFilters.category)
     const [type, setType] = useState(initialFilters.type)
+
+    const [alertState, setAlertState] = useState<"idle" | "saving" | "saved" | "error">("idle")
 
     const buildHref = (overrides: Partial<Filters & { page: number }> = {}) => {
         const next = {
@@ -80,6 +84,13 @@ export default function VagasClient({ jobsPage, filterOptions, initialFilters, v
         setCategory("")
         setType("")
         navigate({ q: "", location: "", category: "", type: "" })
+    }
+
+    const handleCreateAlert = async () => {
+        if (alertState === "saving") return
+        setAlertState("saving")
+        const result = await createJobAlertFromSearch({ q, location, category, type })
+        setAlertState(result.error ? "error" : "saved")
     }
 
     const hasActiveFilters = Boolean(q || location || category || type)
@@ -142,6 +153,43 @@ export default function VagasClient({ jobsPage, filterOptions, initialFilters, v
                             >
                                 Limpar filtros
                             </button>
+                        )}
+
+                        {viewer.isAuthenticated && viewer.isCandidate ? (
+                            <button
+                                type="button"
+                                onClick={handleCreateAlert}
+                                disabled={alertState === "saving" || alertState === "saved"}
+                                className={`inline-flex items-center gap-1.5 text-sm font-medium transition-colors ${
+                                    alertState === "saved"
+                                        ? "text-emerald-600 cursor-default"
+                                        : "text-blue-700 hover:text-blue-800"
+                                }`}
+                            >
+                                {alertState === "saved" ? (
+                                    <>
+                                        <Check className="w-4 h-4" />
+                                        Alerta criado
+                                    </>
+                                ) : (
+                                    <>
+                                        <BellPlus className="w-4 h-4" />
+                                        {alertState === "saving" ? "A criar alerta..." : "Criar alerta para esta pesquisa"}
+                                    </>
+                                )}
+                            </button>
+                        ) : !viewer.isAuthenticated ? (
+                            <Link
+                                href="/auth/login?type=candidate"
+                                className="inline-flex items-center gap-1.5 text-sm font-medium text-blue-700 hover:text-blue-800 transition-colors"
+                            >
+                                <BellPlus className="w-4 h-4" />
+                                Entra para criar um alerta
+                            </Link>
+                        ) : null}
+
+                        {alertState === "error" && (
+                            <span className="text-sm text-red-600">Não foi possível criar o alerta, tenta novamente.</span>
                         )}
                     </div>
                 </div>
