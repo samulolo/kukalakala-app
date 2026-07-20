@@ -124,7 +124,12 @@ export default function NotificationBell({ userId, initialNotifications, initial
             </button>
 
             {open && (
-                <div className="absolute right-0 mt-2 w-80 max-w-[calc(100vw-2rem)] rounded-xl border border-slate-200 bg-white shadow-xl z-50">
+                // Em mobile, "fixed" com margens fixas ao viewport evita que o
+                // painel fique ancorado ao próprio botão do sino (que pode
+                // estar longe do canto direito do ecrã) e acabe a transbordar
+                // para fora do ecrã à esquerda. A partir de sm:, volta ao
+                // comportamento normal de dropdown ancorado ao botão.
+                <div className="fixed left-4 right-4 top-20 sm:absolute sm:left-auto sm:right-0 sm:top-auto sm:mt-2 sm:w-80 rounded-xl border border-slate-200 bg-white shadow-xl z-50">
                     <div className="flex items-center justify-between px-4 py-3 border-b border-slate-100">
                         <span className="text-sm font-semibold text-slate-900">Notificações</span>
                         {unreadCount > 0 && (
