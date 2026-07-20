@@ -58,6 +58,30 @@ export async function getMyApplications(): Promise<Application[]> {
     return (data ?? []).map((row) => mapApplicationRow(row as unknown as ApplicationRow))
 }
 
+// Candidatura do candidato autenticado, só com os dados básicos
+// (vaga/empresa) — usada para abrir o painel de mensagens a partir de
+// um link de notificação (?conversa=), mesmo que a candidatura não
+// esteja na página/lista atualmente visível.
+export async function getMyApplicationSummaryById(applicationId: string): Promise<Application | null> {
+    const supabase = await createClient()
+    const { data: { user } } = await getVerifiedUser()
+    if (!user) return null
+
+    const { data, error } = await supabase
+        .from("applications")
+        .select("id, job_id, status, created_at, jobs(title, company)")
+        .eq("id", applicationId)
+        .eq("candidate_id", user.id)
+        .maybeSingle()
+
+    if (error || !data) {
+        if (error) console.error("Erro ao carregar candidatura: ", error)
+        return null
+    }
+
+    return mapApplicationRow(data as unknown as ApplicationRow)
+}
+
 export interface MyApplicationDetail {
     id: string
     jobId: string

@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { CheckCircle2, Circle, ArrowUpRight, Send, MessageSquare, TrendingUp, Heart } from "lucide-react"
 import { getMyProfile, checklistFromProfile, completionFromChecklist } from "@/lib/supabase/profile"
-import { getMyApplications, getMyApplicationsTimeline } from "@/lib/supabase/applications"
+import { getMyApplications, getMyApplicationSummaryById, getMyApplicationsTimeline } from "@/lib/supabase/applications"
 import { getSavedJobIds } from "@/lib/supabase/saved-jobs"
 import StatusBadge from "@/components/dashboard/StatusBadge"
 import StatCard from "@/components/dashboard/StatCard"
@@ -15,12 +15,19 @@ const barColors: Record<string, string> = {
     "Rejeitado": "bg-slate-400"
 }
 
-export default async function DashboardHomePage() {
-    const [profile, applications, timeline, savedJobIds] = await Promise.all([
+interface DashboardHomePageProps {
+    searchParams: Promise<{ conversa?: string }>
+}
+
+export default async function DashboardHomePage({ searchParams }: DashboardHomePageProps) {
+    const { conversa } = await searchParams
+
+    const [profile, applications, timeline, savedJobIds, openConversation] = await Promise.all([
         getMyProfile(),
         getMyApplications(),
         getMyApplicationsTimeline(),
-        getSavedJobIds()
+        getSavedJobIds(),
+        conversa ? getMyApplicationSummaryById(conversa) : Promise.resolve(null)
     ])
 
     const name = profile?.fullName || "Candidato(a)"
@@ -150,7 +157,7 @@ export default async function DashboardHomePage() {
                     </div>
 
                     {recentApplications.length > 0 ? (
-                        <RecentApplicationsList applications={recentApplications} />
+                        <RecentApplicationsList applications={recentApplications} openConversation={openConversation} />
                     ) : (
                         <div className="text-center py-12">
                             <p className="text-slate-600 font-light text-sm">

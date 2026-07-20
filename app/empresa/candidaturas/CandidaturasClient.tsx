@@ -12,7 +12,15 @@ import AiFitDrawer from "./AiFitDrawer"
 
 const statusOptions: ApplicationStatus[] = ["Em análise", "Entrevista", "Aprovado", "Rejeitado"]
 
-export default function CandidaturasClient({ applications }: { applications: CompanyApplicant[] }) {
+interface CandidaturasClientProps {
+    applications: CompanyApplicant[]
+    // Candidatura a abrir automaticamente (vinda de um link de
+    // notificação, ex. ?conversa=ID) — carregada à parte porque pode não
+    // estar entre as candidaturas visíveis com os filtros atuais.
+    openApplicant?: CompanyApplicant | null
+}
+
+export default function CandidaturasClient({ applications, openApplicant }: CandidaturasClientProps) {
     const [jobFilter, setJobFilter] = useState("all")
     const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all")
     const [savingId, setSavingId] = useState<string | null>(null)
@@ -21,6 +29,14 @@ export default function CandidaturasClient({ applications }: { applications: Com
     const [aiLoading, setAiLoading] = useState(false)
     const [aiError, setAiError] = useState<string | null>(null)
     const [aiResult, setAiResult] = useState<AiFitAnalysis | null>(null)
+
+    // Ajusta o estado durante a renderização (em vez de um efeito) para
+    // abrir a candidatura vinda da notificação assim que chega uma nova.
+    const [appliedOpenId, setAppliedOpenId] = useState<string | null>(null)
+    if (openApplicant && openApplicant.id !== appliedOpenId) {
+        setAppliedOpenId(openApplicant.id)
+        setSelectedId(openApplicant.id)
+    }
 
     const jobs = useMemo(() => {
         const map = new Map<string, string>()
@@ -34,7 +50,8 @@ export default function CandidaturasClient({ applications }: { applications: Com
         return true
     })
 
-    const selectedApplicant = applications.find((a) => a.id === selectedId) ?? null
+    const selectedApplicant =
+        applications.find((a) => a.id === selectedId) ?? (openApplicant?.id === selectedId ? openApplicant : null)
     const aiSelectedApplicant = applications.find((a) => a.id === aiSelectedId) ?? null
 
     const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {

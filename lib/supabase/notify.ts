@@ -137,7 +137,12 @@ export async function notifyNewMessage(applicationId: string, senderId: string, 
     const recipientId = isSenderCompany ? participants.candidateId : participants.companyId
     const recipientEmail = isSenderCompany ? participants.candidateEmail : participants.companyEmail
     const senderName = isSenderCompany ? participants.companyName : participants.candidateName
-    const recipientLink = isSenderCompany ? "/dashboard" : "/empresa/candidaturas"
+    // Aponta diretamente para a candidatura em questão (não só para a
+    // listagem genérica) para que "Ver conversa" abra mesmo a conversa,
+    // tanto a partir da notificação como do email.
+    const recipientLink = isSenderCompany
+        ? `/dashboard?conversa=${participants.applicationId}`
+        : `/empresa/candidaturas?conversa=${participants.applicationId}`
     const preview = body.length > 120 ? `${body.slice(0, 120)}…` : body
 
     await createNotification({

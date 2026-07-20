@@ -1,8 +1,17 @@
-import { getCompanyApplications } from "@/lib/supabase/company-applications"
+import { getCompanyApplications, getCompanyApplicantById } from "@/lib/supabase/company-applications"
 import CandidaturasClient from "./CandidaturasClient"
 
-export default async function CandidaturasEmpresaPage() {
-    const applications = await getCompanyApplications()
+interface CandidaturasEmpresaPageProps {
+    searchParams: Promise<{ conversa?: string }>
+}
 
-    return <CandidaturasClient applications={applications} />
+export default async function CandidaturasEmpresaPage({ searchParams }: CandidaturasEmpresaPageProps) {
+    const { conversa } = await searchParams
+
+    const [applications, openApplicant] = await Promise.all([
+        getCompanyApplications(),
+        conversa ? getCompanyApplicantById(conversa) : Promise.resolve(null)
+    ])
+
+    return <CandidaturasClient applications={applications} openApplicant={openApplicant} />
 }

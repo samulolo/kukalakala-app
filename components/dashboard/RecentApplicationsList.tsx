@@ -9,9 +9,27 @@ import StatusBadge from "./StatusBadge"
 import MessagesDrawer from "./MessagesDrawer"
 import CandidateJobFitDrawer from "./CandidateJobFitDrawer"
 
-export default function RecentApplicationsList({ applications }: { applications: Application[] }) {
+interface RecentApplicationsListProps {
+    applications: Application[]
+    // Candidatura a abrir automaticamente no painel de mensagens (vinda
+    // de um link de notificação, ex. ?conversa=ID) — carregada à parte
+    // porque pode não estar na lista/página atualmente visível.
+    openConversation?: Application | null
+}
+
+export default function RecentApplicationsList({ applications, openConversation }: RecentApplicationsListProps) {
     const [selectedId, setSelectedId] = useState<string | null>(null)
-    const selected = applications.find((a) => a.id === selectedId) ?? null
+    const selected = applications.find((a) => a.id === selectedId) ?? (openConversation?.id === selectedId ? openConversation : null)
+
+    // Ajusta o estado durante a renderização (em vez de um efeito) para
+    // abrir a candidatura vinda da notificação assim que chega uma nova
+    // — padrão recomendado pelo React para "adjusting state when props
+    // change" sem disparar um render extra via efeito.
+    const [appliedOpenId, setAppliedOpenId] = useState<string | null>(null)
+    if (openConversation && openConversation.id !== appliedOpenId) {
+        setAppliedOpenId(openConversation.id)
+        setSelectedId(openConversation.id)
+    }
 
     const [fitApplicationId, setFitApplicationId] = useState<string | null>(null)
     const [fitLoading, setFitLoading] = useState(false)
