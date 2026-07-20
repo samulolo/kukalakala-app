@@ -1,6 +1,13 @@
 import { createClient } from "@/supabase/server"
 import { createNotification } from "./notifications"
-import { sendApplicationReceivedEmail, sendNewMessageEmail, sendStatusChangedEmail } from "@/lib/email/send"
+import {
+    sendApplicationReceivedEmail,
+    sendInterviewResponseEmail,
+    sendInterviewScheduledEmail,
+    sendNewMessageEmail,
+    sendStatusChangedEmail
+} from "@/lib/email/send"
+import type { InterviewNotifyAction } from "@/emails/InterviewScheduledEmail"
 
 export interface ApplicationParticipants {
     applicationId: string
@@ -165,6 +172,104 @@ export async function notifyNewMessage(applicationId: string, senderId: string, 
             preview,
             link: recipientLink,
             replyTo: senderEmail || undefined
+        })
+    }
+}
+
+function formatInterviewDateTime(iso: string): string {
+    return new Date(iso).toLocaleString("pt-PT", {
+        weekday: "long",
+        day: "2-digit",
+        month: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+    })
+}
+
+const interviewModeLabel: Record<string, string> = {
+    online: "online",
+    presencial: "presencial",
+    telefone: "por telefone"
+}
+
+// Chamada pela empresa ao propor, reagendar ou cancelar uma
+// entrevista — o candidato vê tudo isto ao abrir o painel de
+// mensagens da candidatura (link "?conversa=", já usado para abrir a
+// conversa e agora também a secção de entrevista).
+export async function notifyInterviewScheduled(
+    applicationId: string,
+    interview: { scheduledAt: string; mode: string; location: string; durationMinutes: number },
+    action: InterviewNotifyAction = "scheduled"
+): Promise<void> {
+    const participants = await getApplicationParticipants(applicationId)
+    if (!participants) return
+
+    const modeLabel = interviewModeLabel[interview.mode] ?? interview.mode
+
+    const title =
+        action === "cancelled" ? "Entrevista cancelada" : action === "rescheduled" ? "Entrevista reagendada" : "Entrevista agendada"
+
+    const body =
+        action === "cancelled"
+            ? `${participants.companyName} cancelou a entrevista para ${participants.jobTitle}`
+            : `${participants.companyName} propôs uma entrevista ${modeLabel} para ${participants.jobTitle}, ${formatInterviewDateTime(interview.scheduledAt)}`
+
+    await createNotification({
+        recipientId: participants.candidateId,
+        applicationId: participants.applicationId,
+        type: "interview_scheduled",
+        title,
+        body,
+        link: `/dashboard?conversa=${participants.applicationId}`
+    })
+
+    if (participants.candidateEmail) {
+        await sendInterviewScheduledEmail({
+            to: participants.candidateEmail,
+            candidateName: participants.candidateName,
+            companyName: participants.companyName,
+            jobTitle: participants.jobTitle,
+            scheduledAt: interview.scheduledAt,
+            durationMinutes: interview.durationMinutes,
+            mode: interview.mode,
+            location: interview.location,
+            action,
+            replyTo: participants.companyEmail || undefined
+        })
+    }
+}
+
+// Chamada pelo candidato ao confirmar ou recusar uma entrevista.
+export async function notifyInterviewResponse(
+    applicationId: string,
+    status: Extract<"confirmada" | "recusada", string>
+): Promise<void> {
+    const participants = await getApplicationParticipants(applicationId)
+    if (!participants) return
+
+    const title = status === "confirmada" ? "Candidato confirmou a entrevista" : "Candidato não pode comparecer"
+    const body =
+        status === "confirmada"
+            ? `${participants.candidateName} confirmou a entrevista para ${participants.jobTitle}`
+            : `${participants.candidateName} não vai poder comparecer à entrevista para ${participants.jobTitle}`
+
+    await createNotification({
+        recipientId: participants.companyId,
+        applicationId: participants.applicationId,
+        type: "interview_response",
+        title,
+        body,
+        link: `/empresa/candidaturas?conversa=${participants.applicationId}`
+    })
+
+    if (participants.companyEmail) {
+        await sendInterviewResponseEmail({
+            to: participants.companyEmail,
+            companyName: participants.companyName,
+            candidateName: participants.candidateName,
+            jobTitle: participants.jobTitle,
+            status,
+            replyTo: participants.candidateEmail || undefined
         })
     }
 }

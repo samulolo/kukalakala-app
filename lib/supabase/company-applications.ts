@@ -3,6 +3,7 @@ import { formatRelativeTime } from "@/lib/format-relative-time"
 import { notifyStatusChanged } from "./notify"
 import type { ApplicationStatus } from "./applications"
 import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
+import { INTERVIEW_EMBED_COLUMNS, mapInterviewRow, toSingleInterview, type Interview, type InterviewRow } from "@/lib/supabase/interviews"
 
 export interface CompanyApplicant {
     id: string
@@ -22,6 +23,7 @@ export interface CompanyApplicant {
     appliedAt: string
     createdAt: string
     cachedAiFit: AiFitAnalysis | null
+    interview: Interview | null
 }
 
 interface CompanyApplicantProfile {
@@ -58,10 +60,11 @@ interface CompanyApplicantRow {
     ai_weaknesses: string[] | null
     ai_improvements: string[] | null
     ai_analyzed_at: string | null
+    interviews: InterviewRow | InterviewRow[] | null
 }
 
 const APPLICANT_COLUMNS =
-    "id, job_id, candidate_id, status, created_at, jobs(title), profiles(full_name, headline, location, phone, bio, level, skills, cv_filename, cv_path), ai_score, ai_fit_level, ai_summary, ai_strengths, ai_weaknesses, ai_improvements, ai_analyzed_at"
+    `id, job_id, candidate_id, status, created_at, jobs(title), profiles(full_name, headline, location, phone, bio, level, skills, cv_filename, cv_path), ai_score, ai_fit_level, ai_summary, ai_strengths, ai_weaknesses, ai_improvements, ai_analyzed_at, ${INTERVIEW_EMBED_COLUMNS}`
 
 function toSingle<T>(value: T | T[] | null | undefined): T | null {
     if (Array.isArray(value)) return value[0] ?? null
@@ -84,6 +87,7 @@ function mapCachedAiFit(row: CompanyApplicantRow): AiFitAnalysis | null {
 function mapCompanyApplicantRow(row: CompanyApplicantRow): CompanyApplicant {
     const job = toSingle(row.jobs)
     const profile = toSingle(row.profiles)
+    const interviewRow = toSingleInterview(row.interviews)
 
     return {
         id: row.id,
@@ -102,7 +106,8 @@ function mapCompanyApplicantRow(row: CompanyApplicantRow): CompanyApplicant {
         status: row.status,
         appliedAt: formatRelativeTime(row.created_at),
         createdAt: row.created_at,
-        cachedAiFit: mapCachedAiFit(row)
+        cachedAiFit: mapCachedAiFit(row),
+        interview: interviewRow ? mapInterviewRow(interviewRow) : null
     }
 }
 

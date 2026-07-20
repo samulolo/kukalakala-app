@@ -14,7 +14,9 @@ import type { Notification, NotificationType } from "@/lib/supabase/notification
 const actionLabelByType: Record<NotificationType, string> = {
     application_received: "Ver candidatura",
     application_status_changed: "Ver vaga",
-    new_message: "Ver conversa"
+    new_message: "Ver conversa",
+    interview_scheduled: "Ver entrevista",
+    interview_response: "Ver candidatura"
 }
 
 interface NotificationRow {

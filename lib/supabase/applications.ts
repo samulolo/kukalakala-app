@@ -1,6 +1,7 @@
 import { createClient, getVerifiedUser } from "@/supabase/server"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
+import { INTERVIEW_EMBED_COLUMNS, mapInterviewRow, toSingleInterview, type Interview, type InterviewRow } from "@/lib/supabase/interviews"
 
 export type ApplicationStatus = "Em análise" | "Entrevista" | "Aprovado" | "Rejeitado"
 
@@ -15,6 +16,9 @@ export interface Application {
     // relativo) — usada para calcular métricas reais na página Início,
     // como quantas candidaturas foram enviadas este mês.
     createdAt: string
+    // Entrevista proposta pela empresa (se existir) — null enquanto a
+    // empresa não agendar nada.
+    interview: Interview | null
 }
 
 interface ApplicationRow {
@@ -23,9 +27,13 @@ interface ApplicationRow {
     status: ApplicationStatus
     created_at: string
     jobs: { title: string; company: string } | null
+    interviews: InterviewRow | InterviewRow[] | null
 }
 
+const APPLICATION_COLUMNS = `id, job_id, status, created_at, jobs(title, company), ${INTERVIEW_EMBED_COLUMNS}`
+
 function mapApplicationRow(row: ApplicationRow): Application {
+    const interviewRow = toSingleInterview(row.interviews)
     return {
         id: row.id,
         jobId: row.job_id,
@@ -33,7 +41,8 @@ function mapApplicationRow(row: ApplicationRow): Application {
         company: row.jobs?.company ?? "",
         status: row.status,
         appliedAt: formatRelativeTime(row.created_at),
-        createdAt: row.created_at
+        createdAt: row.created_at,
+        interview: interviewRow ? mapInterviewRow(interviewRow) : null
     }
 }
 
@@ -46,7 +55,7 @@ export async function getMyApplications(): Promise<Application[]> {
 
     const { data, error } = await supabase
         .from("applications")
-        .select("id, job_id, status, created_at, jobs(title, company)")
+        .select(APPLICATION_COLUMNS)
         .eq("candidate_id", user.id)
         .order("created_at", { ascending: false })
 
@@ -69,7 +78,7 @@ export async function getMyApplicationSummaryById(applicationId: string): Promis
 
     const { data, error } = await supabase
         .from("applications")
-        .select("id, job_id, status, created_at, jobs(title, company)")
+        .select(APPLICATION_COLUMNS)
         .eq("id", applicationId)
         .eq("candidate_id", user.id)
         .maybeSingle()
@@ -182,7 +191,7 @@ export async function getMyApplicationsPage(filters: ApplicationFilters): Promis
     // face ao embed normal.
     let query = supabase
         .from("applications")
-        .select("id, job_id, status, created_at, jobs!inner(title, company)", { count: "exact" })
+        .select(`id, job_id, status, created_at, jobs!inner(title, company), ${INTERVIEW_EMBED_COLUMNS}`, { count: "exact" })
         .eq("candidate_id", user.id)
 
     if (filters.status) {

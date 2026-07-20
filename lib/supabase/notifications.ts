@@ -1,6 +1,11 @@
 import { createClient, getVerifiedUser } from "@/supabase/server"
 
-export type NotificationType = "application_received" | "application_status_changed" | "new_message"
+export type NotificationType =
+    | "application_received"
+    | "application_status_changed"
+    | "new_message"
+    | "interview_scheduled"
+    | "interview_response"
 
 export interface Notification {
     id: string

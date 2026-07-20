@@ -109,10 +109,17 @@ export default function RecentApplicationsList({ applications, openConversation 
                                     type="button"
                                     onClick={() => setSelectedId(application.id)}
                                     aria-label="Abrir mensagens"
-                                    title="Mensagens"
-                                    className="p-2 rounded-lg text-slate-400 hover:text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
+                                    title={
+                                        application.interview?.status === "proposta"
+                                            ? "Tens uma entrevista para confirmar"
+                                            : "Mensagens"
+                                    }
+                                    className="relative p-2 rounded-lg text-slate-400 hover:text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
                                 >
                                     <MessageCircle className="w-4 h-4" strokeWidth={1.75} />
+                                    {application.interview?.status === "proposta" && (
+                                        <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-500" />
+                                    )}
                                 </button>
                             </div>
                         </div>
@@ -124,6 +131,7 @@ export default function RecentApplicationsList({ applications, openConversation 
                 applicationId={selectedId}
                 title={selected?.company ?? ""}
                 subtitle={selected?.jobTitle}
+                interview={selected?.interview ?? null}
                 onClose={() => setSelectedId(null)}
             />
 

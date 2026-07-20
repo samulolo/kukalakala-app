@@ -2,15 +2,18 @@
 
 import { X } from "lucide-react"
 import MessageThread from "./MessageThread"
+import InterviewResponseCard from "./InterviewResponseCard"
+import type { Interview } from "@/lib/supabase/interviews"
 
 interface MessagesDrawerProps {
     applicationId: string | null
     title: string
     subtitle?: string
+    interview?: Interview | null
     onClose: () => void
 }
 
-export default function MessagesDrawer({ applicationId, title, subtitle, onClose }: MessagesDrawerProps) {
+export default function MessagesDrawer({ applicationId, title, subtitle, interview, onClose }: MessagesDrawerProps) {
     const isOpen = applicationId !== null
 
     return (
@@ -47,7 +50,12 @@ export default function MessagesDrawer({ applicationId, title, subtitle, onClose
 
                 {applicationId && (
                     <div className="flex-1 px-5 py-4 overflow-hidden flex flex-col min-h-0">
-                        <MessageThread key={applicationId} applicationId={applicationId} />
+                        {interview && interview.status !== "cancelada" && (
+                            <InterviewResponseCard key={interview.id} applicationId={applicationId} interview={interview} />
+                        )}
+                        <div className="flex-1 min-h-0">
+                            <MessageThread key={applicationId} applicationId={applicationId} />
+                        </div>
                     </div>
                 )}
             </aside>

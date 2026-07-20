@@ -3,6 +3,8 @@ import ApplicationReceivedEmail from "@/emails/ApplicationReceivedEmail"
 import StatusChangedEmail from "@/emails/StatusChangedEmail"
 import NewMessageEmail from "@/emails/NewMessageEmail"
 import JobAlertEmail from "@/emails/JobAlertEmail"
+import InterviewScheduledEmail, { type InterviewNotifyAction } from "@/emails/InterviewScheduledEmail"
+import InterviewResponseEmail from "@/emails/InterviewResponseEmail"
 
 // Todas as funções abaixo são "best effort": nunca lançam erro para
 // não bloquear a ação principal do utilizador (candidatar-se, mudar
@@ -128,5 +130,77 @@ export async function sendNewMessageEmail(params: {
         })
     } catch (err) {
         console.error("Erro ao enviar email de nova mensagem: ", err)
+    }
+}
+
+export async function sendInterviewScheduledEmail(params: {
+    to: string
+    candidateName: string
+    companyName: string
+    jobTitle: string
+    scheduledAt: string
+    durationMinutes: number
+    mode: string
+    location: string
+    action: InterviewNotifyAction
+    replyTo?: string
+}): Promise<void> {
+    if (!canSendEmail()) return
+    try {
+        await resend.emails.send({
+            from: EMAIL_FROM,
+            to: params.to,
+            ...(params.replyTo ? { replyTo: params.replyTo } : {}),
+            subject:
+                params.action === "cancelled"
+                    ? `Entrevista cancelada: ${params.jobTitle}`
+                    : `Entrevista ${params.action === "rescheduled" ? "reagendada" : "agendada"}: ${params.jobTitle}`,
+            react: (
+                <InterviewScheduledEmail
+                    candidateName={params.candidateName}
+                    companyName={params.companyName}
+                    jobTitle={params.jobTitle}
+                    scheduledAt={params.scheduledAt}
+                    durationMinutes={params.durationMinutes}
+                    mode={params.mode}
+                    location={params.location}
+                    action={params.action}
+                />
+            )
+        })
+    } catch (err) {
+        console.error("Erro ao enviar email de entrevista agendada: ", err)
+    }
+}
+
+export async function sendInterviewResponseEmail(params: {
+    to: string
+    companyName: string
+    candidateName: string
+    jobTitle: string
+    status: "confirmada" | "recusada"
+    replyTo?: string
+}): Promise<void> {
+    if (!canSendEmail()) return
+    try {
+        await resend.emails.send({
+            from: EMAIL_FROM,
+            to: params.to,
+            ...(params.replyTo ? { replyTo: params.replyTo } : {}),
+            subject:
+                params.status === "confirmada"
+                    ? `${params.candidateName} confirmou a entrevista`
+                    : `${params.candidateName} não pode comparecer à entrevista`,
+            react: (
+                <InterviewResponseEmail
+                    companyName={params.companyName}
+                    candidateName={params.candidateName}
+                    jobTitle={params.jobTitle}
+                    status={params.status}
+                />
+            )
+        })
+    } catch (err) {
+        console.error("Erro ao enviar email de resposta à entrevista: ", err)
     }
 }

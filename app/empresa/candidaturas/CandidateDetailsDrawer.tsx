@@ -6,6 +6,7 @@ import type { CompanyApplicant } from "@/lib/supabase/company-applications"
 import type { ApplicationStatus } from "@/lib/supabase/applications"
 import MessageThread from "@/components/dashboard/MessageThread"
 import { getCvSignedUrl } from "@/lib/actions/cv"
+import InterviewScheduler from "./InterviewScheduler"
 
 const statusOptions: ApplicationStatus[] = ["Em análise", "Entrevista", "Aprovado", "Rejeitado"]
 
@@ -186,6 +187,12 @@ export default function CandidateDetailsDrawer({ applicant, onClose, onStatusCha
                                 )}
                                 {cvError && <p className="text-xs text-red-600 mt-1.5">{cvError}</p>}
                             </div>
+
+                            <InterviewScheduler
+                                key={`${applicant.id}-${applicant.interview?.id ?? "none"}-${applicant.interview?.status ?? ""}-${applicant.interview?.scheduledAt ?? ""}`}
+                                applicationId={applicant.id}
+                                interview={applicant.interview}
+                            />
 
                             <div className="mb-2">
                                 <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-1.5">
