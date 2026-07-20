@@ -1,6 +1,7 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { MapPin, Briefcase, Eye, Sparkles } from "lucide-react"
 import type { CompanyApplicant } from "@/lib/supabase/company-applications"
 import type { ApplicationStatus } from "@/lib/supabase/applications"
@@ -21,6 +22,8 @@ interface CandidaturasClientProps {
 }
 
 export default function CandidaturasClient({ applications, openApplicant }: CandidaturasClientProps) {
+    const router = useRouter()
+    const pathname = usePathname()
     const [jobFilter, setJobFilter] = useState("all")
     const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all")
     const [savingId, setSavingId] = useState<string | null>(null)
@@ -32,11 +35,28 @@ export default function CandidaturasClient({ applications, openApplicant }: Cand
 
     // Ajusta o estado durante a renderização (em vez de um efeito) para
     // abrir a candidatura vinda da notificação assim que chega uma nova.
+    //
+    // Também repõe o guard a null assim que o parâmetro "?conversa="
+    // desaparece da URL (depois de o limparmos no efeito abaixo). Sem
+    // isto, uma notificação seguinte para a MESMA candidatura — o caso
+    // normal numa conversa com várias mensagens — nunca voltaria a
+    // abrir o painel, porque o id já teria ficado marcado como
+    // "aplicado" e nunca mais haveria alteração para reagir.
     const [appliedOpenId, setAppliedOpenId] = useState<string | null>(null)
     if (openApplicant && openApplicant.id !== appliedOpenId) {
         setAppliedOpenId(openApplicant.id)
         setSelectedId(openApplicant.id)
+    } else if (!openApplicant && appliedOpenId !== null) {
+        setAppliedOpenId(null)
     }
+
+    // Limpa o parâmetro "?conversa=" da URL depois de aplicado, para que
+    // fique disponível para consumir de novo numa próxima notificação.
+    useEffect(() => {
+        if (appliedOpenId) {
+            router.replace(pathname, { scroll: false })
+        }
+    }, [appliedOpenId, pathname, router])
 
     const jobs = useMemo(() => {
         const map = new Map<string, string>()

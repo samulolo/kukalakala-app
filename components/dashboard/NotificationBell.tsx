@@ -149,8 +149,8 @@ export default function NotificationBell({ userId, initialNotifications, initial
                                     key={notification.id}
                                     className={`px-4 py-3 border-b border-slate-50 last:border-0 ${
                                         !notification.read ? "bg-blue-50/40" : ""
-                                    }`}>
-                                        vaga
+                                    }`}
+                                >
                                     <div className="flex items-start gap-2">
                                         {!notification.read && (
                                             <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-700 flex-shrink-0" />

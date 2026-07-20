@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
+import { usePathname, useRouter } from "next/navigation"
 import { MessageCircle, Sparkles } from "lucide-react"
 import type { Application } from "@/lib/supabase/applications"
 import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
@@ -18,6 +19,8 @@ interface RecentApplicationsListProps {
 }
 
 export default function RecentApplicationsList({ applications, openConversation }: RecentApplicationsListProps) {
+    const router = useRouter()
+    const pathname = usePathname()
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const selected = applications.find((a) => a.id === selectedId) ?? (openConversation?.id === selectedId ? openConversation : null)
 
@@ -25,11 +28,28 @@ export default function RecentApplicationsList({ applications, openConversation 
     // abrir a candidatura vinda da notificação assim que chega uma nova
     // — padrão recomendado pelo React para "adjusting state when props
     // change" sem disparar um render extra via efeito.
+    //
+    // Também repõe o guard a null assim que o parâmetro "?conversa="
+    // desaparece da URL (depois de o limparmos no efeito abaixo). Sem
+    // isto, uma notificação seguinte para a MESMA candidatura — o caso
+    // normal numa conversa com várias mensagens — nunca voltaria a
+    // abrir o painel, porque o id já teria ficado marcado como
+    // "aplicado" e nunca mais haveria alteração para reagir.
     const [appliedOpenId, setAppliedOpenId] = useState<string | null>(null)
     if (openConversation && openConversation.id !== appliedOpenId) {
         setAppliedOpenId(openConversation.id)
         setSelectedId(openConversation.id)
+    } else if (!openConversation && appliedOpenId !== null) {
+        setAppliedOpenId(null)
     }
+
+    // Limpa o parâmetro "?conversa=" da URL depois de aplicado, para que
+    // fique disponível para consumir de novo numa próxima notificação.
+    useEffect(() => {
+        if (appliedOpenId) {
+            router.replace(pathname, { scroll: false })
+        }
+    }, [appliedOpenId, pathname, router])
 
     const [fitApplicationId, setFitApplicationId] = useState<string | null>(null)
     const [fitLoading, setFitLoading] = useState(false)
