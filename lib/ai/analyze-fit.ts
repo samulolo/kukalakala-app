@@ -1,4 +1,5 @@
 import OpenAI from "openai"
+import type { JobSkill } from "@/lib/supabase/jobs"
 
 // Módulo real de análise de IA — substitui o antigo lib/ai-fit-mock.ts.
 // Uma única chamada ao modelo cobre as duas perspetivas usadas na app
@@ -24,6 +25,11 @@ export interface AnalyzeFitInput {
     jobCategory: string
     jobDescription: string
     jobRequirements: string[]
+    // Competências pedidas pela empresa, cada uma com o nível de
+    // importância que ela própria definiu ao publicar a vaga — usado
+    // para pesar o score (falhar uma "obrigatorio" pesa mais do que
+    // falhar uma "desejavel").
+    jobSkills: JobSkill[]
     candidateName: string
     candidateHeadline: string
     candidateLevel: string
@@ -69,6 +75,23 @@ const responseSchema = {
     }
 } as const
 
+function buildSkillsSection(jobSkills: JobSkill[]): string {
+    if (jobSkills.length === 0) return "Não especificadas"
+
+    const byLevel = (level: JobSkill["level"]) =>
+        jobSkills.filter((skill) => skill.level === level).map((skill) => skill.name)
+
+    const required = byLevel("obrigatorio")
+    const important = byLevel("importante")
+    const desirable = byLevel("desejavel")
+
+    const lines: string[] = []
+    if (required.length > 0) lines.push(`Obrigatórias: ${required.join(", ")}`)
+    if (important.length > 0) lines.push(`Importantes: ${important.join(", ")}`)
+    if (desirable.length > 0) lines.push(`Desejáveis: ${desirable.join(", ")}`)
+    return lines.join("\n")
+}
+
 function buildPrompt(input: AnalyzeFitInput): string {
     const cvSection = input.cvText
         ? `Currículo do candidato (texto extraído do ficheiro):\n"""\n${input.cvText.slice(0, MAX_CV_CHARS)}\n"""`
@@ -82,6 +105,11 @@ Empresa: ${input.jobCompany}
 Categoria: ${input.jobCategory}
 Descrição: ${input.jobDescription}
 Requisitos: ${input.jobRequirements.join("; ") || "Não especificados"}
+
+Competências pedidas, por nível de importância que a própria empresa definiu:
+${buildSkillsSection(input.jobSkills)}
+
+Ao calcular o score, pesa cada competência em falta de acordo com o nível: faltar uma competência "Obrigatória" deve penalizar o score de forma decisiva (é um bloqueador, não um detalhe); faltar uma "Importante" deve penalizar moderadamente; faltar uma "Desejável" tem impacto pequeno ou nenhum. Quando referires lacunas em "weaknesses", indica sempre que nível de importância tinha essa competência para a vaga.
 
 PERFIL DO CANDIDATO
 Nome: ${input.candidateName}

@@ -3,10 +3,23 @@
 import { useState } from "react"
 import { X } from "lucide-react"
 import type { CompanyJob, CompanyJobInput } from "@/lib/supabase/company-jobs"
+import type { JobSkill, SkillLevel } from "@/lib/supabase/jobs"
 import { createJob, updateJob } from "./actions"
 import { useToast } from "@/components/dashboard/ToastContext"
 
 const employmentTypes = ["Full-time", "Meio-período", "Híbrido", "Estágio"]
+
+const skillLevels: { value: SkillLevel; label: string }[] = [
+    { value: "obrigatorio", label: "Obrigatório" },
+    { value: "importante", label: "Importante" },
+    { value: "desejavel", label: "Desejável" }
+]
+
+const skillLevelStyle: Record<SkillLevel, string> = {
+    obrigatorio: "bg-rose-50 text-rose-700",
+    importante: "bg-amber-50 text-amber-700",
+    desejavel: "bg-slate-100 text-slate-600"
+}
 
 interface JobFormDrawerProps {
     job: CompanyJob | null
@@ -71,8 +84,26 @@ function JobFormFields({ job, onClose }: { job: CompanyJob | null; onClose: () =
     const [description, setDescription] = useState(job?.description ?? "")
     const [responsibilitiesText, setResponsibilitiesText] = useState(job?.responsibilities.join("\n") ?? "")
     const [requirementsText, setRequirementsText] = useState(job?.requirements.join("\n") ?? "")
+    const [skills, setSkills] = useState<JobSkill[]>(job?.skills ?? [])
+    const [skillName, setSkillName] = useState("")
+    const [skillLevel, setSkillLevel] = useState<SkillLevel>("obrigatorio")
     const [saving, setSaving] = useState(false)
     const [error, setError] = useState("")
+
+    const handleAddSkill = () => {
+        const name = skillName.trim()
+        if (!name) return
+        if (skills.some((s) => s.name.toLowerCase() === name.toLowerCase())) {
+            setSkillName("")
+            return
+        }
+        setSkills((prev) => [...prev, { name, level: skillLevel }])
+        setSkillName("")
+    }
+
+    const handleRemoveSkill = (name: string) => {
+        setSkills((prev) => prev.filter((s) => s.name !== name))
+    }
 
     const inputClass =
         "w-full px-3.5 py-2.5 rounded-lg border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
@@ -91,6 +122,11 @@ function JobFormFields({ job, onClose }: { job: CompanyJob | null; onClose: () =
             return
         }
 
+        if (skills.length === 0) {
+            setError("Adiciona pelo menos uma competência, com o respetivo nível de importância")
+            return
+        }
+
         setSaving(true)
         setError("")
 
@@ -102,7 +138,8 @@ function JobFormFields({ job, onClose }: { job: CompanyJob | null; onClose: () =
             salaryRange: form.salaryRange,
             description,
             responsibilities: responsibilitiesText.split("\n").map((l) => l.trim()).filter(Boolean),
-            requirements: requirementsText.split("\n").map((l) => l.trim()).filter(Boolean)
+            requirements: requirementsText.split("\n").map((l) => l.trim()).filter(Boolean),
+            skills
         }
 
         try {
@@ -200,6 +237,71 @@ function JobFormFields({ job, onClose }: { job: CompanyJob | null; onClose: () =
                     placeholder={"Desenvolver e manter...\nColaborar com design..."}
                     className={inputClass}
                 />
+            </div>
+
+            <div>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">Competências</label>
+                <p className="text-xs text-slate-400 font-light mb-1.5">
+                    Adiciona as competências que procuras e o nível de importância de cada uma — usadas também
+                    para pesar a análise de compatibilidade por IA de cada candidatura.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-2 mb-2.5">
+                    <input
+                        type="text"
+                        value={skillName}
+                        onChange={(e) => setSkillName(e.target.value)}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") {
+                                e.preventDefault()
+                                handleAddSkill()
+                            }
+                        }}
+                        placeholder="Ex: React"
+                        className={`${inputClass} flex-1`}
+                    />
+                    <select
+                        value={skillLevel}
+                        onChange={(e) => setSkillLevel(e.target.value as SkillLevel)}
+                        className={`${inputClass} sm:w-40`}
+                    >
+                        {skillLevels.map((level) => (
+                            <option key={level.value} value={level.value}>{level.label}</option>
+                        ))}
+                    </select>
+                    <button
+                        type="button"
+                        onClick={handleAddSkill}
+                        className="px-3.5 py-2.5 rounded-lg bg-slate-100 text-slate-700 text-sm font-medium hover:bg-slate-200 transition-colors flex-shrink-0"
+                    >
+                        Adicionar
+                    </button>
+                </div>
+
+                {skills.length > 0 ? (
+                    <div className="flex flex-wrap gap-2">
+                        {skills.map((skill) => (
+                            <span
+                                key={skill.name}
+                                className={`inline-flex items-center gap-1.5 pl-2.5 pr-1.5 py-1 rounded-full text-xs font-medium ${skillLevelStyle[skill.level]}`}
+                            >
+                                {skill.name}
+                                <span className="opacity-70">
+                                    · {skillLevels.find((l) => l.value === skill.level)?.label}
+                                </span>
+                                <button
+                                    type="button"
+                                    onClick={() => handleRemoveSkill(skill.name)}
+                                    aria-label={`Remover ${skill.name}`}
+                                    className="p-0.5 rounded-full hover:bg-black/10 transition-colors"
+                                >
+                                    <X className="w-3 h-3" strokeWidth={2} />
+                                </button>
+                            </span>
+                        ))}
+                    </div>
+                ) : (
+                    <p className="text-xs text-slate-400 font-light">Ainda não adicionaste nenhuma competência.</p>
+                )}
             </div>
 
             <div>

@@ -5,9 +5,27 @@ import { ArrowLeft, MapPin, Clock } from "lucide-react"
 import Navigation from "@/components/landing/Navigation"
 import Footer from "@/components/landing/Footer"
 import ApplyButton from "@/components/landing/ApplyButton"
-import { getJobById } from "@/lib/supabase/jobs"
+import { getJobById, type JobSkill, type SkillLevel } from "@/lib/supabase/jobs"
 import { getViewerApplicationState } from "@/lib/supabase/applications"
 import { buildJobPostingJsonLd } from "@/lib/seo/job-jsonld"
+
+const skillLevelOrder: SkillLevel[] = ["obrigatorio", "importante", "desejavel"]
+const skillLevelLabel: Record<SkillLevel, string> = {
+    obrigatorio: "Obrigatórias",
+    importante: "Importantes",
+    desejavel: "Desejáveis"
+}
+const skillLevelStyle: Record<SkillLevel, string> = {
+    obrigatorio: "bg-rose-50 text-rose-700",
+    importante: "bg-amber-50 text-amber-700",
+    desejavel: "bg-slate-100 text-slate-600"
+}
+
+function groupSkillsByLevel(skills: JobSkill[]): { level: SkillLevel; skills: JobSkill[] }[] {
+    return skillLevelOrder
+        .map((level) => ({ level, skills: skills.filter((skill) => skill.level === level) }))
+        .filter((group) => group.skills.length > 0)
+}
 
 interface JobDetailsPageProps {
     params: Promise<{ id: string }>
@@ -115,6 +133,31 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                                         </li>
                                     ))}
                                 </ul>
+                            </div>
+                        )}
+
+                        {job.skills.length > 0 && (
+                            <div className="mb-8">
+                                <h2 className="text-base font-semibold text-slate-900 mb-3">Competências</h2>
+                                <div className="space-y-3">
+                                    {groupSkillsByLevel(job.skills).map((group) => (
+                                        <div key={group.level}>
+                                            <p className="text-xs font-medium text-slate-400 uppercase tracking-wider mb-1.5">
+                                                {skillLevelLabel[group.level]}
+                                            </p>
+                                            <div className="flex flex-wrap gap-2">
+                                                {group.skills.map((skill) => (
+                                                    <span
+                                                        key={skill.name}
+                                                        className={`px-2.5 py-1 rounded-full text-xs font-medium ${skillLevelStyle[group.level]}`}
+                                                    >
+                                                        {skill.name}
+                                                    </span>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
                         )}
 

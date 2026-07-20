@@ -31,6 +31,13 @@ function splitLocation(location: string): { locality: string; country?: string }
 export function buildJobPostingJsonLd(job: Job, url: string) {
     const { locality, country } = splitLocation(job.location)
     const employmentType = mapEmploymentType(job.type)
+    // schema.org/JobPosting.skills espera texto livre — junta as
+    // competências obrigatórias/importantes (as desejáveis ficam de
+    // fora, por serem "nice to have" e não o essencial da vaga).
+    const skillsText = job.skills
+        .filter((skill) => skill.level === "obrigatorio" || skill.level === "importante")
+        .map((skill) => skill.name)
+        .join(", ")
 
     return {
         "@context": "https://schema.org",
@@ -56,6 +63,7 @@ export function buildJobPostingJsonLd(job: Job, url: string) {
                 ...(country ? { addressCountry: country } : {})
             }
         },
+        ...(skillsText ? { skills: skillsText } : {}),
         directApply: true,
         url
     }

@@ -1,6 +1,16 @@
 import { createClient } from "@/supabase/server"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 
+// Nível de importância de uma competência pedida na vaga — usado
+// tanto na exibição (pública e no painel da empresa) como para pesar
+// a análise de compatibilidade por IA (ver lib/ai/analyze-fit.ts).
+export type SkillLevel = "obrigatorio" | "importante" | "desejavel"
+
+export interface JobSkill {
+    name: string
+    level: SkillLevel
+}
+
 export interface Job {
     id: string
     title: string
@@ -15,6 +25,9 @@ export interface Job {
     description: string
     responsibilities: string[]
     requirements: string[]
+    // Complementa "requirements" (texto livre): lista estruturada de
+    // competências com nível de importância.
+    skills: JobSkill[]
 }
 
 interface JobRow {
@@ -28,7 +41,29 @@ interface JobRow {
     description: string
     responsibilities: string[] | null
     requirements: string[] | null
+    skills: unknown
     created_at: string
+}
+
+const validSkillLevels: SkillLevel[] = ["obrigatorio", "importante", "desejavel"]
+
+function isSkillLevel(value: unknown): value is SkillLevel {
+    return typeof value === "string" && (validSkillLevels as string[]).includes(value)
+}
+
+// Robusto a dados antigos/malformados na coluna jsonb — nunca deixa
+// passar um item sem nome ou com um nível fora do enum conhecido.
+export function normalizeJobSkills(rows: unknown): JobSkill[] {
+    if (!Array.isArray(rows)) return []
+    return rows
+        .map((row): JobSkill | null => {
+            if (typeof row !== "object" || row === null) return null
+            const candidate = row as Record<string, unknown>
+            const name = typeof candidate.name === "string" ? candidate.name.trim() : ""
+            const level = isSkillLevel(candidate.level) ? candidate.level : null
+            return name && level ? { name, level } : null
+        })
+        .filter((skill): skill is JobSkill => skill !== null)
 }
 
 function mapJobRow(row: JobRow): Job {
@@ -44,7 +79,8 @@ function mapJobRow(row: JobRow): Job {
         createdAt: row.created_at,
         description: row.description,
         responsibilities: row.responsibilities ?? [],
-        requirements: row.requirements ?? []
+        requirements: row.requirements ?? [],
+        skills: normalizeJobSkills(row.skills)
     }
 }
 

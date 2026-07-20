@@ -1,18 +1,3 @@
--- ============================================================
--- Kukalakala — agendamento de entrevistas
---
--- A empresa propõe uma entrevista (data/hora, modo, local/link,
--- notas) para uma candidatura; o candidato confirma ou recusa.
--- Cada candidatura tem no máximo uma entrevista "ativa" — reagendar
--- atualiza a mesma linha em vez de criar outra.
---
--- Como aplicar: SQL Editor do Supabase, depois de
--- 20260716120000_candidate_schema.sql, 20260717090000_company_schema.sql,
--- 20260718100000_company_dashboard_schema.sql e
--- 20260719120000_notifications_messaging_schema.sql (depende de
--- public.applications, public.jobs e public.notifications já existirem).
--- ============================================================
-
 create table if not exists public.interviews (
     id uuid primary key default gen_random_uuid(),
     application_id uuid not null unique references public.applications (id) on delete cascade,

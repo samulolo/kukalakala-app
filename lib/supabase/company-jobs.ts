@@ -1,6 +1,7 @@
 import { createClient, getVerifiedUser } from "@/supabase/server"
 import { formatRelativeTime } from "@/lib/format-relative-time"
 import { matchAndNotifyJobAlerts } from "./job-alerts"
+import { normalizeJobSkills, type JobSkill } from "./jobs"
 
 export interface CompanyJob {
     id: string
@@ -12,6 +13,7 @@ export interface CompanyJob {
     description: string
     responsibilities: string[]
     requirements: string[]
+    skills: JobSkill[]
     isActive: boolean
     postedAt: string
     applicantCount: number
@@ -26,6 +28,7 @@ export interface CompanyJobInput {
     description: string
     responsibilities: string[]
     requirements: string[]
+    skills: JobSkill[]
 }
 
 interface CompanyJobRow {
@@ -38,6 +41,7 @@ interface CompanyJobRow {
     description: string
     responsibilities: string[] | null
     requirements: string[] | null
+    skills: unknown
     is_active: boolean
     created_at: string
 }
@@ -53,6 +57,7 @@ function mapCompanyJobRow(row: CompanyJobRow, applicantCount: number): CompanyJo
         description: row.description,
         responsibilities: row.responsibilities ?? [],
         requirements: row.requirements ?? [],
+        skills: normalizeJobSkills(row.skills),
         isActive: row.is_active,
         postedAt: formatRelativeTime(row.created_at),
         applicantCount
@@ -82,7 +87,7 @@ export async function getCompanyJobs(): Promise<CompanyJob[]> {
 
     const { data: jobRows, error } = await supabase
         .from("jobs")
-        .select("id, title, location, type, category, salary_range, description, responsibilities, requirements, is_active, created_at")
+        .select("id, title, location, type, category, salary_range, description, responsibilities, requirements, skills, is_active, created_at")
         .eq("company_id", user.id)
         .order("created_at", { ascending: false })
 
@@ -133,7 +138,8 @@ export async function createCompanyJob(input: CompanyJobInput): Promise<{ error:
         salary_range: input.salaryRange,
         description: input.description,
         responsibilities: input.responsibilities,
-        requirements: input.requirements
+        requirements: input.requirements,
+        skills: input.skills
     })
 
     if (error) {
@@ -166,7 +172,8 @@ export async function updateCompanyJob(jobId: string, input: CompanyJobInput): P
             salary_range: input.salaryRange,
             description: input.description,
             responsibilities: input.responsibilities,
-            requirements: input.requirements
+            requirements: input.requirements,
+            skills: input.skills
         })
         .eq("id", jobId)
         .eq("company_id", user.id)
