@@ -109,7 +109,7 @@ export default function VagasClient({ jobsPage, filterOptions, initialFilters, v
                         Vagas disponíveis
                     </h1>
                     <p className="text-lg text-slate-600 max-w-2xl font-light leading-relaxed mb-8">
-                        Explore oportunidades verificadas de empresas que estão a contratar agora
+                        Explore oportunidades de empresas que estão a contratar agora
                     </p>
 
                     <form onSubmit={handleSearchSubmit} className="relative max-w-xl mb-4">

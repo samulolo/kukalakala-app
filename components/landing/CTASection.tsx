@@ -11,7 +11,7 @@ export default function CTASection() {
                             Pronto para começar?
                         </h2>
                         <p className="text-lg text-slate-600 max-w-xl mx-auto font-light">
-                            Milhares de candidatos e empresas já estão encontrando sucesso na Kukalakala. Seja o próximo.
+                            Candidatos encontram vagas relevantes, com feedback de IA em cada candidatura. Empresas encontram os candidatos certos, mais rápido. Sê dos primeiros.
                         </p>
                     </div>
 

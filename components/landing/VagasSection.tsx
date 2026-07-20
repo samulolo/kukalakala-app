@@ -22,7 +22,7 @@ export default async function VagasSection() {
                             Vagas em destaque
                         </h2>
                         <p className="text-base text-slate-600 max-w-2xl font-light leading-relaxed">
-                            Novas oportunidades publicadas todos os dias por empresas verificadas
+                            Novas oportunidades publicadas por empresas que estão a contratar agora
                         </p>
                     </div>
                     <Link

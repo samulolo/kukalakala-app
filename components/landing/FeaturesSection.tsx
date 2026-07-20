@@ -1,36 +1,36 @@
-import { Search, Zap, BarChart3, Briefcase, Lock, Globe } from "lucide-react"
+import { Search, Sparkles, BellRing, MessageCircle, BarChart3, Briefcase } from "lucide-react"
 import FeatureCard from "./FeatureCard"
 
 const features = [
     {
         icon: Search,
         title: "Procura Inteligente",
-        description: "Encontre oportunidades perfeitas com filtros avançados e recomendações personalizadas"
+        description: "Filtre vagas por palavra-chave, localização, categoria e tipo para encontrar o que procura mais rápido"
     },
     {
-        icon: Zap,
-        title: "Rápido e Simples",
-        description: "Processo de candidatura intuitivo que leva minutos de início a fim"
+        icon: Sparkles,
+        title: "Análise por Inteligência Artificial",
+        description: "A IA lê o teu perfil e o teu CV e dá-te um score de compatibilidade com cada vaga, pontos fortes, fracos e sugestões concretas de melhoria"
+    },
+    {
+        icon: BellRing,
+        title: "Alertas de Vagas",
+        description: "Guarda uma pesquisa como alerta e recebe um email assim que surgir uma vaga nova que combine contigo"
+    },
+    {
+        icon: MessageCircle,
+        title: "Mensagens Diretas",
+        description: "Comunique diretamente com a empresa ou o candidato sobre cada candidatura, sem sair da plataforma"
     },
     {
         icon: BarChart3,
         title: "Análises Detalhadas",
-        description: "Acompanhe suas candidaturas e obtenha insights valiosos sobre seu progresso"
+        description: "Acompanhe a evolução das suas candidaturas ou vagas com gráficos e métricas claras"
     },
     {
         icon: Briefcase,
         title: "Gestão Profissional",
         description: "Crie, publique e gerencie vagas com um dashboard intuitivo e poderoso"
-    },
-    {
-        icon: Lock,
-        title: "Segurança Garantida",
-        description: "Seus dados estão protegidos com encriptação de nível empresarial"
-    },
-    {
-        icon: Globe,
-        title: "Alcance Global",
-        description: "Conecte-se com talentos e oportunidades de todo o mundo"
     }
 ]
 

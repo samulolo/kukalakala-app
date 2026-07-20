@@ -6,23 +6,22 @@ import UserTypeSection from "@/components/landing/UserTypeSection"
 import CandidateIllustration from "@/components/landing/CandidateIllustration"
 import CompanyIllustration from "@/components/landing/CompanyIllustration"
 import HowItWorksSection from "@/components/landing/HowItWorksSection"
-import StatsSection from "@/components/landing/StatsSection"
 import CTASection from "@/components/landing/CTASection"
 import Footer from "@/components/landing/Footer"
 
 export default function Home() {
     const candidateBenefits = [
         {
-            title: "Vagas Verificadas",
-            description: "Todas as empresas são verificadas e confiáveis"
+            title: "Feedback de IA em cada candidatura",
+            description: "Vê o teu score de compatibilidade, pontos fortes e fracos, e o que podes melhorar no teu perfil"
         },
         {
             title: "Perfil Profissional",
-            description: "Crie um perfil impressionante e seja descoberto"
+            description: "Crie um perfil completo, com CV, e seja descoberto pelas empresas"
         },
         {
-            title: "Notificações Personalizadas",
-            description: "Receba alertas sobre vagas que combinam com você"
+            title: "Alertas de Vagas por Email",
+            description: "Cria um alerta com os teus critérios e recebe um email assim que surgir uma vaga nova que combine contigo"
         }
     ]
 
@@ -36,8 +35,8 @@ export default function Home() {
             description: "Gerencie candidatos num único lugar"
         },
         {
-            title: "Recrutamento Eficiente",
-            description: "Encontre candidatos qualificados rapidamente"
+            title: "Análise de IA por Candidatura",
+            description: "Cada candidatura vem com um score de compatibilidade gerado por IA, com base no perfil e CV do candidato"
         }
     ]
 
@@ -50,7 +49,7 @@ export default function Home() {
             <UserTypeSection
                 type="candidate"
                 title="Encontre seu próximo desafio"
-                description="Explore milhares de oportunidades de carreira com empresas líderes. Construa sua carreira com a Kukalakala."
+                description="Explore oportunidades de carreira e recebe feedback de IA em cada candidatura. Construa a sua carreira com a Kukalakala."
                 benefits={candidateBenefits}
                 ctaText="Começar como Candidato"
                 ctaLink="/auth/login?type=candidate"
@@ -60,7 +59,7 @@ export default function Home() {
             <UserTypeSection
                 type="company"
                 title="Recrute os melhores talentos"
-                description="Acesse um pool de candidatos qualificados e encontre o ajuste perfeito para sua equipe. Crescer é mais fácil com Kukalakala."
+                description="Receba um score de compatibilidade gerado por IA em cada candidatura e encontre o ajuste perfeito para a sua equipa, mais rápido."
                 benefits={companyBenefits}
                 ctaText="Começar como Empresa"
                 ctaLink="/auth/register?type=company"
@@ -68,7 +67,6 @@ export default function Home() {
                 caption="Seus Próximos Talentos"
             />
             <HowItWorksSection />
-            <StatsSection />
             <CTASection />
             <Footer />
         </div>

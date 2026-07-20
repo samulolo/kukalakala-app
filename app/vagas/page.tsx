@@ -34,8 +34,8 @@ export async function generateMetadata({ searchParams }: VagasPageProps): Promis
     const title = parts.length > 0 ? `Vagas ${parts.join(" ")}` : "Vagas disponíveis"
     const description =
         parts.length > 0
-            ? `Explora vagas ${parts.join(" ")} em empresas verificadas na Kukalakala.`
-            : "Explora vagas verificadas de empresas que estão a contratar agora na Kukalakala."
+            ? `Explora vagas ${parts.join(" ")} na Kukalakala, com análise de IA em cada candidatura.`
+            : "Explora vagas de empresas que estão a contratar agora na Kukalakala, com análise de IA em cada candidatura."
 
     const canonicalParams = new URLSearchParams()
     if (params.q) canonicalParams.set("q", params.q)

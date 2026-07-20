@@ -21,20 +21,20 @@ export const metadata: Metadata = {
     template: "%s | Kukalakala",
   },
   description:
-    "A plataforma que conecta candidatos e empresas. Encontra vagas verificadas ou publica a tua vaga e recruta os melhores talentos.",
+    "A plataforma que conecta candidatos e empresas, com análise de IA em cada candidatura. Encontra vagas ou publica a tua vaga e recruta os melhores talentos.",
   openGraph: {
     type: "website",
     locale: "pt_PT",
     siteName: "Kukalakala",
     title: "Kukalakala — Conecta talentos e oportunidades",
     description:
-      "A plataforma que conecta candidatos e empresas. Encontra vagas verificadas ou publica a tua vaga e recruta os melhores talentos.",
+      "A plataforma que conecta candidatos e empresas, com análise de IA em cada candidatura. Encontra vagas ou publica a tua vaga e recruta os melhores talentos.",
   },
   twitter: {
     card: "summary_large_image",
     title: "Kukalakala — Conecta talentos e oportunidades",
     description:
-      "A plataforma que conecta candidatos e empresas. Encontra vagas verificadas ou publica a tua vaga e recruta os melhores talentos.",
+      "A plataforma que conecta candidatos e empresas, com análise de IA em cada candidatura. Encontra vagas ou publica a tua vaga e recruta os melhores talentos.",
   },
   robots: {
     index: true,
