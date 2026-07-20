@@ -100,7 +100,8 @@ export async function notifyNewApplication(applicationId: string): Promise<void>
             to: participants.companyEmail,
             companyName: participants.companyName,
             candidateName: participants.candidateName,
-            jobTitle: participants.jobTitle
+            jobTitle: participants.jobTitle,
+            replyTo: participants.candidateEmail || undefined
         })
     }
 }
@@ -124,7 +125,8 @@ export async function notifyStatusChanged(applicationId: string, status: string)
             candidateName: participants.candidateName,
             companyName: participants.companyName,
             jobTitle: participants.jobTitle,
-            status
+            status,
+            replyTo: participants.companyEmail || undefined
         })
     }
 }
@@ -136,6 +138,7 @@ export async function notifyNewMessage(applicationId: string, senderId: string, 
     const isSenderCompany = senderId === participants.companyId
     const recipientId = isSenderCompany ? participants.candidateId : participants.companyId
     const recipientEmail = isSenderCompany ? participants.candidateEmail : participants.companyEmail
+    const senderEmail = isSenderCompany ? participants.companyEmail : participants.candidateEmail
     const senderName = isSenderCompany ? participants.companyName : participants.candidateName
     // Aponta diretamente para a candidatura em questão (não só para a
     // listagem genérica) para que "Ver conversa" abra mesmo a conversa,
@@ -160,7 +163,8 @@ export async function notifyNewMessage(applicationId: string, senderId: string, 
             senderName,
             jobTitle: participants.jobTitle,
             preview,
-            link: recipientLink
+            link: recipientLink,
+            replyTo: senderEmail || undefined
         })
     }
 }

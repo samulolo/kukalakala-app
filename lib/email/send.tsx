@@ -22,12 +22,14 @@ export async function sendApplicationReceivedEmail(params: {
     companyName: string
     candidateName: string
     jobTitle: string
+    replyTo?: string
 }): Promise<void> {
     if (!canSendEmail()) return
     try {
         await resend.emails.send({
             from: EMAIL_FROM,
             to: params.to,
+            ...(params.replyTo ? { replyTo: params.replyTo } : {}),
             subject: `Nova candidatura: ${params.jobTitle}`,
             react: (
                 <ApplicationReceivedEmail
@@ -48,12 +50,14 @@ export async function sendStatusChangedEmail(params: {
     companyName: string
     jobTitle: string
     status: string
+    replyTo?: string
 }): Promise<void> {
     if (!canSendEmail()) return
     try {
         await resend.emails.send({
             from: EMAIL_FROM,
             to: params.to,
+            ...(params.replyTo ? { replyTo: params.replyTo } : {}),
             subject: `A tua candidatura a ${params.jobTitle} foi atualizada`,
             react: (
                 <StatusChangedEmail
@@ -104,12 +108,14 @@ export async function sendNewMessageEmail(params: {
     jobTitle: string
     preview: string
     link: string
+    replyTo?: string
 }): Promise<void> {
     if (!canSendEmail()) return
     try {
         await resend.emails.send({
             from: EMAIL_FROM,
             to: params.to,
+            ...(params.replyTo ? { replyTo: params.replyTo } : {}),
             subject: `Nova mensagem de ${params.senderName}`,
             react: (
                 <NewMessageEmail
