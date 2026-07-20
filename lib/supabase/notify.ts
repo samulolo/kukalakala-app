@@ -7,6 +7,7 @@ import {
     sendNewMessageEmail,
     sendStatusChangedEmail
 } from "@/lib/email/send"
+import { sendWhatsAppMessage } from "@/lib/whatsapp/send"
 import type { InterviewNotifyAction } from "@/emails/InterviewScheduledEmail"
 
 export interface ApplicationParticipants {
@@ -16,9 +17,11 @@ export interface ApplicationParticipants {
     candidateId: string
     candidateName: string
     candidateEmail: string
+    candidatePhone: string
     companyId: string
     companyName: string
     companyEmail: string
+    companyPhone: string
 }
 
 function toSingle<T>(value: T | T[] | null | undefined): T | null {
@@ -29,11 +32,13 @@ function toSingle<T>(value: T | T[] | null | undefined): T | null {
 interface CompanyEmbed {
     company_name: string
     email: string | null
+    phone: string | null
 }
 
 interface ProfileEmbed {
     full_name: string
     email: string | null
+    phone: string | null
 }
 
 interface JobEmbed {
@@ -60,7 +65,7 @@ export async function getApplicationParticipants(applicationId: string): Promise
 
     const { data, error } = await supabase
         .from("applications")
-        .select("id, candidate_id, profiles(full_name, email), jobs(id, title, company_id, companies(company_name, email))")
+        .select("id, candidate_id, profiles(full_name, email, phone), jobs(id, title, company_id, companies(company_name, email, phone))")
         .eq("id", applicationId)
         .maybeSingle()
 
@@ -83,9 +88,11 @@ export async function getApplicationParticipants(applicationId: string): Promise
         candidateId: row.candidate_id,
         candidateName: profile.full_name || "Candidato(a)",
         candidateEmail: profile.email ?? "",
+        candidatePhone: profile.phone ?? "",
         companyId: job.company_id,
         companyName: company.company_name || "Empresa",
-        companyEmail: company.email ?? ""
+        companyEmail: company.email ?? "",
+        companyPhone: company.phone ?? ""
     }
 }
 
@@ -135,6 +142,13 @@ export async function notifyStatusChanged(applicationId: string, status: string)
             status,
             replyTo: participants.companyEmail || undefined
         })
+    }
+
+    if (participants.candidatePhone) {
+        await sendWhatsAppMessage(
+            participants.candidatePhone,
+            `Olá ${participants.candidateName}! A ${participants.companyName} atualizou a tua candidatura a "${participants.jobTitle}" para: ${status}.`
+        )
     }
 }
 
@@ -237,6 +251,10 @@ export async function notifyInterviewScheduled(
             replyTo: participants.companyEmail || undefined
         })
     }
+
+    if (participants.candidatePhone) {
+        await sendWhatsAppMessage(participants.candidatePhone, `Olá ${participants.candidateName}! ${body}`)
+    }
 }
 
 // Chamada pelo candidato ao confirmar ou recusar uma entrevista.
@@ -271,5 +289,9 @@ export async function notifyInterviewResponse(
             status,
             replyTo: participants.candidateEmail || undefined
         })
+    }
+
+    if (participants.companyPhone) {
+        await sendWhatsAppMessage(participants.companyPhone, body)
     }
 }

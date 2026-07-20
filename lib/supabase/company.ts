@@ -10,6 +10,7 @@ export interface Company {
     description: string
     location: string
     postalCode: string
+    phone: string
     verificationStatus: VerificationStatus
     verificationDocumentPath: string | null
     verificationSubmittedAt: string | null
@@ -24,6 +25,7 @@ export interface CompanyInput {
     description: string
     location: string
     postalCode: string
+    phone: string
 }
 
 interface CompanyRow {
@@ -34,6 +36,7 @@ interface CompanyRow {
     description: string
     location: string
     postal_code: string
+    phone: string
     email: string | null
     verification_status: VerificationStatus
     verification_document_path: string | null
@@ -51,6 +54,7 @@ function mapCompanyRow(row: CompanyRow): Company {
         description: row.description,
         location: row.location,
         postalCode: row.postal_code,
+        phone: row.phone,
         verificationStatus: row.verification_status,
         verificationDocumentPath: row.verification_document_path,
         verificationSubmittedAt: row.verification_submitted_at,
@@ -104,6 +108,7 @@ export async function upsertMyCompany(input: CompanyInput): Promise<{ error: str
         description: input.description,
         location: input.location,
         postal_code: input.postalCode,
+        phone: input.phone,
         email: user.email ?? ""
     })
 

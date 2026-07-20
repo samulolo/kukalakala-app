@@ -14,7 +14,8 @@ export default function CompanyProfileForm({ initialCompany }: { initialCompany:
         sector: initialCompany?.sector ?? "",
         description: initialCompany?.description ?? "",
         location: initialCompany?.location ?? "",
-        postalCode: initialCompany?.postalCode ?? ""
+        postalCode: initialCompany?.postalCode ?? "",
+        phone: initialCompany?.phone ?? ""
     })
 
     const [saving, setSaving] = useState(false)
@@ -154,6 +155,20 @@ export default function CompanyProfileForm({ initialCompany }: { initialCompany:
                             className={inputClass}
                         />
                     </div>
+                </div>
+
+                <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-1.5">Telefone (WhatsApp)</label>
+                    <input
+                        type="tel"
+                        value={form.phone}
+                        onChange={handleChange("phone")}
+                        placeholder="923 000 000"
+                        className={inputClass}
+                    />
+                    <p className="text-xs text-slate-400 font-light mt-1.5">
+                        Usado para te avisarmos por WhatsApp quando um candidato responde a uma entrevista.
+                    </p>
                 </div>
 
                 <div>

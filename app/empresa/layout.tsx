@@ -35,7 +35,8 @@ export default async function EmpresaLayout({
             sector: "",
             description: "",
             location: "",
-            postalCode: ""
+            postalCode: "",
+            phone: ""
         })
 
         company = await getMyCompany()

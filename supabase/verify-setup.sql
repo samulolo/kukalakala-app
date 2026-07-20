@@ -28,6 +28,11 @@ select * from (
     ('interviews table',                    exists (select 1 from information_schema.tables where table_name = 'interviews'),                                                      '20260723090000_interviews.sql'),
     ('respond_to_interview() function',     exists (select 1 from pg_proc where proname = 'respond_to_interview'),                                                                 '20260723090000_interviews.sql'),
     ('bucket "cvs" no Storage',             exists (select 1 from storage.buckets where id = 'cvs'),                                                                              '20260721090000_cv_storage.sql'),
-    ('cv_owner_select policy (storage)',    exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'cv_owner_select'),          '20260721090000_cv_storage.sql')
+    ('cv_owner_select policy (storage)',    exists (select 1 from pg_policies where schemaname = 'storage' and tablename = 'objects' and policyname = 'cv_owner_select'),          '20260721090000_cv_storage.sql'),
+    ('admins table',                        exists (select 1 from information_schema.tables where table_name = 'admins'),                                                          '20260725090000_company_verification.sql'),
+    ('companies.verification_status',       exists (select 1 from information_schema.columns where table_name = 'companies' and column_name = 'verification_status'),              '20260725090000_company_verification.sql'),
+    ('jobs.company_verified',               exists (select 1 from information_schema.columns where table_name = 'jobs' and column_name = 'company_verified'),                      '20260725090000_company_verification.sql'),
+    ('bucket "verification-docs" no Storage', exists (select 1 from storage.buckets where id = 'verification-docs'),                                                                '20260725090000_company_verification.sql'),
+    ('companies.phone',                     exists (select 1 from information_schema.columns where table_name = 'companies' and column_name = 'phone'),                            '20260726090000_whatsapp_notifications.sql')
 ) as checks(item, ok, fonte)
 order by ok asc, item;
