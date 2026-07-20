@@ -28,6 +28,9 @@ export interface Job {
     // Complementa "requirements" (texto livre): lista estruturada de
     // competências com nível de importância.
     skills: JobSkill[]
+    // Denormalizado de companies.verification_status — companies não
+    // tem select público, por isso o selo "Verificado" vive aqui.
+    companyVerified: boolean
 }
 
 interface JobRow {
@@ -42,6 +45,7 @@ interface JobRow {
     responsibilities: string[] | null
     requirements: string[] | null
     skills: unknown
+    company_verified: boolean
     created_at: string
 }
 
@@ -80,7 +84,8 @@ function mapJobRow(row: JobRow): Job {
         description: row.description,
         responsibilities: row.responsibilities ?? [],
         requirements: row.requirements ?? [],
-        skills: normalizeJobSkills(row.skills)
+        skills: normalizeJobSkills(row.skills),
+        companyVerified: row.company_verified
     }
 }
 

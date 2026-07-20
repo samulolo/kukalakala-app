@@ -5,6 +5,7 @@ import { Globe, MapPin, Building2, Check } from "lucide-react"
 import type { Company } from "@/lib/supabase/company"
 import { saveCompany } from "./actions"
 import { COMPANY_SECTORS } from "@/lib/company-sectors"
+import VerificationUploader from "@/components/empresa/VerificationUploader"
 
 export default function CompanyProfileForm({ initialCompany }: { initialCompany: Company | null }) {
     const [form, setForm] = useState({
@@ -184,6 +185,11 @@ export default function CompanyProfileForm({ initialCompany }: { initialCompany:
                     )}
                 </div>
             </form>
+
+            <VerificationUploader
+                status={initialCompany?.verificationStatus ?? "nao_verificado"}
+                rejectionReason={initialCompany?.verificationRejectionReason ?? ""}
+            />
         </div>
     )
 }

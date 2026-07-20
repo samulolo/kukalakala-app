@@ -120,7 +120,7 @@ export async function createCompanyJob(input: CompanyJobInput): Promise<{ error:
 
     const { data: company } = await supabase
         .from("companies")
-        .select("company_name")
+        .select("company_name, verification_status")
         .eq("id", user.id)
         .maybeSingle()
 
@@ -139,7 +139,11 @@ export async function createCompanyJob(input: CompanyJobInput): Promise<{ error:
         description: input.description,
         responsibilities: input.responsibilities,
         requirements: input.requirements,
-        skills: input.skills
+        skills: input.skills,
+        // O trigger sync_jobs_company_verified só corre em UPDATE de
+        // companies — uma vaga nova de uma empresa já verificada
+        // precisa deste valor inicial explícito.
+        company_verified: company?.verification_status === "verificado"
     })
 
     if (error) {

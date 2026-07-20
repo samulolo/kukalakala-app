@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
-import { ArrowLeft, MapPin, Clock } from "lucide-react"
+import { ArrowLeft, MapPin, Clock, BadgeCheck } from "lucide-react"
 import Navigation from "@/components/landing/Navigation"
 import Footer from "@/components/landing/Footer"
 import ApplyButton from "@/components/landing/ApplyButton"
@@ -94,7 +94,15 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
                             </span>
                             <div className="min-w-0">
                                 <h1 className="text-2xl font-semibold text-slate-900 leading-snug">{job.title}</h1>
-                                <p className="text-base text-slate-600 font-light">{job.company}</p>
+                                <p className="text-base text-slate-600 font-light flex items-center gap-1.5">
+                                    {job.company}
+                                    {job.companyVerified && (
+                                        <span className="inline-flex items-center gap-1 text-xs font-medium text-blue-700">
+                                            <BadgeCheck className="w-4 h-4" strokeWidth={2} />
+                                            Verificada
+                                        </span>
+                                    )}
+                                </p>
                             </div>
                         </div>
 

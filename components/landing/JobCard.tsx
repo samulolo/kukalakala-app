@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { MapPin, Clock, Eye } from "lucide-react"
+import { MapPin, Clock, Eye, BadgeCheck } from "lucide-react"
 import type { Job } from "@/lib/supabase/jobs"
 import ApplyButton from "./ApplyButton"
 import { DollarSign } from "lucide-react"
@@ -23,7 +23,16 @@ export default function JobCard({ job, isAuthenticated = false, isCandidate = fa
                         <h3 className="text-base font-semibold text-slate-900 leading-snug">
                             {job.title}
                         </h3>
-                        <p className="text-sm text-slate-600 font-light">{job.company}</p>
+                        <p className="text-sm text-slate-600 font-light flex items-center gap-1">
+                            {job.company}
+                            {job.companyVerified && (
+                                <BadgeCheck
+                                    className="w-3.5 h-3.5 text-blue-700 flex-shrink-0"
+                                    strokeWidth={2}
+                                    aria-label="Empresa verificada"
+                                />
+                            )}
+                        </p>
                     </div>
                 </div>
                 <span className="hidden sm:inline-block text-xs font-medium text-slate-500 whitespace-nowrap pt-1">

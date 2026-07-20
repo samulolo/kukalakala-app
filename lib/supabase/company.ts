@@ -1,5 +1,7 @@
 import { createClient, getVerifiedUser } from "@/supabase/server"
 
+export type VerificationStatus = "nao_verificado" | "pendente" | "verificado" | "rejeitado"
+
 export interface Company {
     id: string
     companyName: string
@@ -8,6 +10,11 @@ export interface Company {
     description: string
     location: string
     postalCode: string
+    verificationStatus: VerificationStatus
+    verificationDocumentPath: string | null
+    verificationSubmittedAt: string | null
+    verificationReviewedAt: string | null
+    verificationRejectionReason: string
 }
 
 export interface CompanyInput {
@@ -28,6 +35,11 @@ interface CompanyRow {
     location: string
     postal_code: string
     email: string | null
+    verification_status: VerificationStatus
+    verification_document_path: string | null
+    verification_submitted_at: string | null
+    verification_reviewed_at: string | null
+    verification_rejection_reason: string
 }
 
 function mapCompanyRow(row: CompanyRow): Company {
@@ -38,7 +50,12 @@ function mapCompanyRow(row: CompanyRow): Company {
         sector: row.sector,
         description: row.description,
         location: row.location,
-        postalCode: row.postal_code
+        postalCode: row.postal_code,
+        verificationStatus: row.verification_status,
+        verificationDocumentPath: row.verification_document_path,
+        verificationSubmittedAt: row.verification_submitted_at,
+        verificationReviewedAt: row.verification_reviewed_at,
+        verificationRejectionReason: row.verification_rejection_reason
     }
 }
 
@@ -95,5 +112,29 @@ export async function upsertMyCompany(input: CompanyInput): Promise<{ error: str
         return { error: error.message }
     }
 
+    return { error: null }
+}
+
+// Submete o documento de verificação já carregado no Storage — a
+// empresa só altera "verification_document_path" e pede o estado
+// "pendente"; o trigger companies_protect_verification é que garante
+// que isto só passa nessa transição legítima (nunca para "verificado").
+export async function submitCompanyVerification(documentPath: string): Promise<{ error: string | null }> {
+    const supabase = await createClient()
+    const { data: { user } } = await getVerifiedUser()
+    if (!user) return { error: "Não autenticado" }
+
+    const { error } = await supabase
+        .from("companies")
+        .update({
+            verification_status: "pendente",
+            verification_document_path: documentPath
+        })
+        .eq("id", user.id)
+
+    if (error) {
+        console.error("Erro ao submeter verificação da empresa: ", error)
+        return { error: error.message }
+    }
     return { error: null }
 }
