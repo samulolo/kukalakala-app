@@ -108,6 +108,22 @@ export async function markAllNotificationsRead(): Promise<{ error: string | null
     return { error: null }
 }
 
+// Apaga (limpa) uma notificação do utilizador autenticado. RLS
+// (notifications_delete_own) já garante que só apaga a própria.
+export async function deleteNotification(id: string): Promise<{ error: string | null }> {
+    const supabase = await createClient()
+    const { error } = await supabase
+        .from("notifications")
+        .delete()
+        .eq("id", id)
+
+    if (error) {
+        console.error("Erro ao apagar notificação: ", error)
+        return { error: error.message }
+    }
+    return { error: null }
+}
+
 // Cria uma notificação para outro utilizador (candidato ou empresa).
 // A policy de insert na BD garante que só é possível notificar
 // alguém com quem existe uma candidatura em comum — ver migração

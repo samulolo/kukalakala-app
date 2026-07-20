@@ -7,6 +7,7 @@
 
 import { getConversation, markConversationRead, sendMessage as sendMessageData } from "@/lib/supabase/messages"
 import {
+    deleteNotification as deleteNotificationData,
     markAllNotificationsRead as markAllNotificationsReadData,
     markNotificationRead as markNotificationReadData
 } from "@/lib/supabase/notifications"
@@ -30,4 +31,8 @@ export async function markNotificationRead(id: string) {
 
 export async function markAllNotificationsRead() {
     return markAllNotificationsReadData()
+}
+
+export async function deleteMyNotification(id: string) {
+    return deleteNotificationData(id)
 }

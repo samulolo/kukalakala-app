@@ -4,6 +4,7 @@ import { sendApplicationReceivedEmail, sendNewMessageEmail, sendStatusChangedEma
 
 export interface ApplicationParticipants {
     applicationId: string
+    jobId: string
     jobTitle: string
     candidateId: string
     candidateName: string
@@ -29,6 +30,7 @@ interface ProfileEmbed {
 }
 
 interface JobEmbed {
+    id: string
     title: string
     company_id: string | null
     companies: CompanyEmbed | CompanyEmbed[] | null
@@ -51,7 +53,7 @@ export async function getApplicationParticipants(applicationId: string): Promise
 
     const { data, error } = await supabase
         .from("applications")
-        .select("id, candidate_id, profiles(full_name, email), jobs(title, company_id, companies(company_name, email))")
+        .select("id, candidate_id, profiles(full_name, email), jobs(id, title, company_id, companies(company_name, email))")
         .eq("id", applicationId)
         .maybeSingle()
 
@@ -69,6 +71,7 @@ export async function getApplicationParticipants(applicationId: string): Promise
 
     return {
         applicationId: row.id,
+        jobId: job.id,
         jobTitle: job.title,
         candidateId: row.candidate_id,
         candidateName: profile.full_name || "Candidato(a)",
@@ -112,7 +115,7 @@ export async function notifyStatusChanged(applicationId: string, status: string)
         type: "application_status_changed",
         title: "O estado da tua candidatura mudou",
         body: `${participants.companyName} atualizou a tua candidatura a ${participants.jobTitle} para "${status}"`,
-        link: "/dashboard"
+        link: `/vagas/${participants.jobId}`
     })
 
     if (participants.candidateEmail) {

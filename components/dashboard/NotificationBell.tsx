@@ -2,10 +2,20 @@
 
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
-import { Bell } from "lucide-react"
+import { Bell, ArrowUpRight, X } from "lucide-react"
 import { supabase } from "@/supabase/client"
-import { markAllNotificationsRead, markNotificationRead } from "@/lib/actions/messaging"
+import { deleteMyNotification, markAllNotificationsRead, markNotificationRead } from "@/lib/actions/messaging"
 import type { Notification, NotificationType } from "@/lib/supabase/notifications"
+
+// Rótulo do botão de ação por tipo de notificação — cada tipo aponta
+// para um sítio diferente (ver link em lib/supabase/notify.ts), por
+// isso o texto do botão devia refletir isso em vez de um genérico
+// "Ver mais".
+const actionLabelByType: Record<NotificationType, string> = {
+    application_received: "Ver candidatura",
+    application_status_changed: "Ver vaga",
+    new_message: "Ver conversa"
+}
 
 interface NotificationRow {
     id: string
@@ -80,7 +90,7 @@ export default function NotificationBell({ userId, initialNotifications, initial
         await markAllNotificationsRead()
     }
 
-    const handleItemClick = async (notification: Notification) => {
+    const handleAction = async (notification: Notification) => {
         if (!notification.read) {
             setNotifications((prev) => prev.map((n) => (n.id === notification.id ? { ...n, read: true } : n)))
             setUnreadCount((prev) => Math.max(0, prev - 1))
@@ -88,6 +98,12 @@ export default function NotificationBell({ userId, initialNotifications, initial
         }
         setOpen(false)
         if (notification.link) router.push(notification.link)
+    }
+
+    const handleClear = async (notification: Notification) => {
+        setNotifications((prev) => prev.filter((n) => n.id !== notification.id))
+        if (!notification.read) setUnreadCount((prev) => Math.max(0, prev - 1))
+        await deleteMyNotification(notification.id)
     }
 
     return (
@@ -124,11 +140,9 @@ export default function NotificationBell({ userId, initialNotifications, initial
                     <div className="max-h-96 overflow-y-auto">
                         {notifications.length > 0 ? (
                             notifications.map((notification) => (
-                                <button
+                                <div
                                     key={notification.id}
-                                    type="button"
-                                    onClick={() => handleItemClick(notification)}
-                                    className={`w-full text-left px-4 py-3 border-b border-slate-50 last:border-0 hover:bg-slate-50 transition-colors ${
+                                    className={`px-4 py-3 border-b border-slate-50 last:border-0 ${
                                         !notification.read ? "bg-blue-50/40" : ""
                                     }`}
                                 >
@@ -136,12 +150,33 @@ export default function NotificationBell({ userId, initialNotifications, initial
                                         {!notification.read && (
                                             <span className="mt-1.5 w-1.5 h-1.5 rounded-full bg-blue-700 flex-shrink-0" />
                                         )}
-                                        <div className="min-w-0">
+                                        <div className="min-w-0 flex-1">
                                             <p className="text-sm font-medium text-slate-900 truncate">{notification.title}</p>
                                             <p className="text-xs text-slate-500 font-light line-clamp-2">{notification.body}</p>
+
+                                            <div className="flex items-center gap-3 mt-2">
+                                                {notification.link && (
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => handleAction(notification)}
+                                                        className="inline-flex items-center gap-1 text-xs font-medium text-blue-700 hover:text-blue-800 transition-colors"
+                                                    >
+                                                        {actionLabelByType[notification.type]}
+                                                        <ArrowUpRight className="w-3 h-3" />
+                                                    </button>
+                                                )}
+                                                <button
+                                                    type="button"
+                                                    onClick={() => handleClear(notification)}
+                                                    className="inline-flex items-center gap-1 text-xs font-medium text-slate-400 hover:text-red-600 transition-colors"
+                                                >
+                                                    <X className="w-3 h-3" />
+                                                    Limpar
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
-                                </button>
+                                </div>
                             ))
                         ) : (
                             <p className="text-sm text-slate-400 font-light text-center py-8">
