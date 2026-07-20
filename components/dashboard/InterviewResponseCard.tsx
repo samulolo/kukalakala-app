@@ -67,12 +67,12 @@ export default function InterviewResponseCard({ applicationId, interview }: Inte
 
     return (
         <div className="mb-4 p-3.5 rounded-xl border border-slate-200 bg-slate-50">
-            <div className="flex items-center justify-between mb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                 <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-slate-900">
                     <Calendar className="w-4 h-4 text-slate-400" strokeWidth={1.75} />
                     Entrevista
                 </span>
-                <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyle[current.status]}`}>
+                <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusStyle[current.status]}`}>
                     {statusLabel[current.status]}
                 </span>
             </div>
@@ -86,7 +86,7 @@ export default function InterviewResponseCard({ applicationId, interview }: Inte
             {current.notes && <p className="text-xs text-slate-500 font-light mt-1.5">{current.notes}</p>}
 
             {current.status === "proposta" && (
-                <div className="flex items-center gap-2 mt-3">
+                <div className="flex flex-wrap items-center gap-2 mt-3">
                     <button
                         type="button"
                         onClick={() => handleRespond("confirmada")}

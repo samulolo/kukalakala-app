@@ -132,9 +132,9 @@ export default function InterviewScheduler({ applicationId, interview }: Intervi
 
             {interview && interview.status !== "cancelada" && !showForm && (
                 <div className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 mb-3">
-                    <div className="flex items-center justify-between mb-2">
+                    <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
                         <span className="text-sm font-medium text-slate-900 capitalize">{formatDateTime(interview.scheduledAt)}</span>
-                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${statusStyle[interview.status]}`}>
+                        <span className={`px-2 py-0.5 rounded-full text-xs font-medium whitespace-nowrap ${statusStyle[interview.status]}`}>
                             {statusLabel[interview.status]}
                         </span>
                     </div>
@@ -148,7 +148,7 @@ export default function InterviewScheduler({ applicationId, interview }: Intervi
                             Nota do candidato: &ldquo;{interview.candidateNote}&rdquo;
                         </p>
                     )}
-                    <div className="flex items-center gap-3 mt-3">
+                    <div className="flex flex-wrap items-center gap-3 mt-3">
                         <button
                             type="button"
                             onClick={() => setShowForm(true)}
@@ -170,7 +170,7 @@ export default function InterviewScheduler({ applicationId, interview }: Intervi
 
             {showForm && (
                 <form onSubmit={handleSubmit} className="p-3.5 rounded-xl border border-slate-200 space-y-2.5">
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <input
                             type="date"
                             value={date}
@@ -186,7 +186,7 @@ export default function InterviewScheduler({ applicationId, interview }: Intervi
                             className="px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
                         />
                     </div>
-                    <div className="grid grid-cols-2 gap-2.5">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                         <select
                             value={mode}
                             onChange={(e) => setMode(e.target.value as InterviewMode)}
@@ -221,7 +221,7 @@ export default function InterviewScheduler({ applicationId, interview }: Intervi
                         className="w-full px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors resize-none"
                     />
                     {error && <p className="text-xs text-red-600">{error}</p>}
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                         <button
                             type="submit"
                             disabled={loading}

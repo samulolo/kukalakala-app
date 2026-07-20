@@ -18,21 +18,6 @@ alter table public.applications
     add column if not exists ai_improvements jsonb,
     add column if not exists ai_analyzed_at timestamptz;
 
--- A candidatura já é legível por ambos os lados através das policies
--- existentes (applications_select_own / applications_select_for_company_jobs),
--- por isso estas colunas ficam visíveis sem qualquer alteração de RLS.
---
--- Só a empresa tem hoje uma policy de UPDATE em applications
--- (applications_update_status_by_company) — de propósito, o candidato
--- não tem nenhuma, para nunca poder alterar o "status" da própria
--- candidatura. Para guardar o resultado da IA — que tanto pode ser
--- calculado quando é a empresa a abrir o painel de análise, como
--- quando é o próprio candidato a abrir o painel de feedback — usamos
--- uma função security definer que só mexe nas colunas ai_*, nunca em
--- status, e volta a verificar a posse da candidatura (candidato dono,
--- ou empresa dona da vaga) por dentro da própria função. Isto evita
--- ter de abrir uma policy de UPDATE completa ao candidato, que lhe
--- daria também acesso de escrita a "status".
 create or replace function public.save_application_ai_fit(
     p_application_id uuid,
     p_score integer,

@@ -37,9 +37,6 @@ export default function CompanyProfileForm({ initialCompany }: { initialCompany:
         setSaved(false)
     }
 
-    // Se o valor guardado for antigo (texto livre, de antes deste select
-    // existir) e não estiver na lista, mantemo-lo como opção para não
-    // apagar silenciosamente o que a empresa já tinha preenchido.
     const sectorOptions =
         form.sector && !COMPANY_SECTORS.includes(form.sector)
             ? [form.sector, ...COMPANY_SECTORS]

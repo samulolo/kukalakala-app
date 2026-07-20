@@ -13,13 +13,6 @@ interface AiFitOutcome {
     error: string | null
 }
 
-// Grava o resultado na própria candidatura (colunas ai_*), para nunca
-// mais precisar de chamar o modelo outra vez para o mesmo par
-// candidato/vaga. Passa por uma função Postgres security definer
-// (save_application_ai_fit, ver supabase/migrations/20260719200000_ai_fit_analysis.sql)
-// em vez de um update direto: é a única forma de o candidato poder
-// gravar isto na sua própria candidatura sem lhe abrir uma policy de
-// UPDATE completa (que também lhe daria acesso de escrita a "status").
 async function persistAiFit(applicationId: string, analysis: AiFitAnalysis): Promise<void> {
     const supabase = await createClient()
     const { error } = await supabase.rpc("save_application_ai_fit", {
@@ -33,9 +26,6 @@ async function persistAiFit(applicationId: string, analysis: AiFitAnalysis): Pro
     })
 
     if (error) {
-        // Falhar a gravar o cache não deve impedir mostrar o resultado
-        // já calculado — só significa que a próxima abertura do painel
-        // vai chamar a IA outra vez.
         console.error("Erro ao guardar análise de IA: ", error)
     }
 }

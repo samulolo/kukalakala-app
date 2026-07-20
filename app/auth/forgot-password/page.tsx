@@ -19,21 +19,20 @@ export default function ForgotPasswordPage() {
         }
         try {
 
-            const {error, data} = await supabase.auth.resetPasswordForEmail(email)
+            const {error} = await supabase.auth.resetPasswordForEmail(email)
 
             if(error){
                 setError("Conta não encontrada, tente novamente!")
                 return
             }
 
-            console.log("DAdos: ", data)
+            setSubmitted(true)
+            setError("")
 
         } catch(err){
-            throw err
+            console.error("Erro ao pedir recuperação de palavra-passe: ", err)
+            setError("Não foi possível enviar o email, tente novamente")
         }
-        setSubmitted(true)
-
-        if(submitted) setError("")
     }
 
     return (

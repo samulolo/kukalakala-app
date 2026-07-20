@@ -14,7 +14,7 @@ class SignInWithGoogle implements SignIn {
             // literalmente "localhost:3000" no browser do developer)
             // um baseUrl fixo faz o Google devolver a sessão para um
             // endereço que não existe nesse dispositivo.
-            const {error, data} = await supabase.auth.signInWithOAuth({
+            const {error} = await supabase.auth.signInWithOAuth({
                 provider: 'google',
                 options: {
                     redirectTo: `${window.location.origin}/auth/callback`
@@ -23,10 +23,9 @@ class SignInWithGoogle implements SignIn {
             if(error){
                 throw error
             }
-            console.log("dados: ", data)
 
         } catch(err){
-            console.log("Houve um erro ao iniciar sessão com o google: ", err)
+            console.error("Erro ao iniciar sessão com o Google: ", err)
             throw err
         }
     }
@@ -36,9 +35,8 @@ class SignInWithLinkedin implements SignIn {
 
     async signIn(){
 
-        console.log();
         try{
-            const {error, data} = await supabase.auth.signInWithOAuth({
+            const {error} = await supabase.auth.signInWithOAuth({
                 provider: 'linkedin_oidc',
                 options: {
                     redirectTo: `${window.location.origin}/auth/callback`
@@ -48,10 +46,9 @@ class SignInWithLinkedin implements SignIn {
             if(error){
                 throw error
             }
-            console.log("dados: ", data)
 
         } catch(err){
-            console.log("Houve um erro ao iniciar sessão com o linkedin: ", err)
+            console.error("Erro ao iniciar sessão com o LinkedIn: ", err)
             throw err
         }
 
@@ -75,7 +72,7 @@ const getOauthUser = async(code: string | null, origin: string ) => {
     const data = await response.json()
 
     if (!response.ok){
-        console.log("Houve um erro ao salvar a sessão do utilizador: ", data)
+        console.error("Erro ao salvar a sessão do utilizador: ", data)
     }
 
     return data

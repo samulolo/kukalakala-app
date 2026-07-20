@@ -28,18 +28,15 @@ function CallbackContent(){
                 const response = await getOauthUser(code, origin)
 
                 if (!response || response.error){
-                    console.log("Resposta da API: ", response)
                     setError(response?.message || "Houve um erro ao iniciar sessão, tente novamente")
                     return
                 }
-
-                console.log("Resposta da API: ", response)
 
                 const type = params.get("type")
                 router.replace(type === "company" ? "/empresa" : "/onboarding")
 
             } catch(err){
-                console.log("houve um erro ao obter a sessão do utilizador: ", err)
+                console.error("Erro ao obter a sessão do utilizador: ", err)
                 setError("Houve um erro ao iniciar sessão, tente novamente")
             }
             finally {
