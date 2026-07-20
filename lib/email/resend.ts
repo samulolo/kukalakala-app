@@ -11,4 +11,4 @@ export const resend = new Resend(process.env.RESEND_API_KEY)
 // reais, verifica um domínio no Resend e define RESEND_FROM_EMAIL.
 export const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || "Kukalakala <onboarding@resend.dev>"
 
-export const APP_URL = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000"
+export const APP_URL = process.env.APP_URL || "http://localhost:3000"

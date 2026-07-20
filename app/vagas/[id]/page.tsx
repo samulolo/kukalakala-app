@@ -46,7 +46,7 @@ export default async function JobDetailsPage({ params }: JobDetailsPageProps) {
     if (!job) notFound()
 
     const isApplied = viewer.appliedJobIds.includes(job.id)
-    const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+    const siteUrl = process.env.APP_URL ?? "http://localhost:3000"
     const jobPostingJsonLd = buildJobPostingJsonLd(job, `${siteUrl}/vagas/${job.id}`)
 
     return (

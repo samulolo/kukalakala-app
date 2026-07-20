@@ -1,7 +1,7 @@
 import type { MetadataRoute } from "next"
 import { getJobs } from "@/lib/supabase/jobs"
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"
+const siteUrl = process.env.APP_URL ?? "http://localhost:3000"
 
 // Sitemap dinâmico: páginas estáticas públicas + uma entrada por vaga
 // ativa. Regenerado a cada pedido do crawler (rota pública, sem cache
