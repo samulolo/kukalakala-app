@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { getVerifiedUser } from "@/supabase/server"
 import { isAdmin } from "@/lib/supabase/admin"
+import AdminNav from "@/components/admin/AdminNav"
 
 // Painel interno, sem link nenhum na navegação pública — só quem tem
 // uma linha em public.admins (inserida manualmente no SQL Editor,
@@ -24,7 +25,8 @@ export default async function AdminLayout({
             <header className="border-b border-slate-200 bg-white">
                 <div className="max-w-5xl mx-auto px-6 py-4">
                     <p className="text-xs uppercase tracking-[0.2em] text-slate-400 font-medium">Kukalakala</p>
-                    <h1 className="text-lg font-semibold text-slate-900">Painel de admin</h1>
+                    <h1 className="text-lg font-semibold text-slate-900 mb-3">Painel de admin</h1>
+                    <AdminNav />
                 </div>
             </header>
             <main className="px-6 py-8">
