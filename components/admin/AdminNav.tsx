@@ -2,12 +2,13 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { ShieldCheck, Users, BarChart3 } from "lucide-react"
+import { ShieldCheck, Users, BarChart3, Bug } from "lucide-react"
 
 const navItems = [
     { label: "Verificações", href: "/admin", icon: ShieldCheck },
     { label: "Utilizadores", href: "/admin/utilizadores", icon: Users },
-    { label: "Métricas", href: "/admin/metricas", icon: BarChart3 }
+    { label: "Métricas", href: "/admin/metricas", icon: BarChart3 },
+    { label: "Reports", href: "/admin/reports", icon: Bug }
 ]
 
 export default function AdminNav() {

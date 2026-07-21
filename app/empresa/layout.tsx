@@ -8,6 +8,7 @@ import MobileTabBar from "@/components/empresa/MobileTabBar"
 import VerificationBanner from "@/components/empresa/VerificationBanner"
 import { ToastProvider } from "@/components/dashboard/ToastContext"
 import ToastViewport from "@/components/dashboard/ToastViewport"
+import ReportBugWidget from "@/components/ui/ReportBugWidget"
 
 export default async function EmpresaLayout({
     children
@@ -71,6 +72,7 @@ export default async function EmpresaLayout({
                     </main>
                 </div>
                 <MobileTabBar />
+                <ReportBugWidget />
             </div>
             <ToastViewport />
         </ToastProvider>

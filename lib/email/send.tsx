@@ -6,6 +6,7 @@ import JobAlertEmail from "@/emails/JobAlertEmail"
 import InterviewScheduledEmail, { type InterviewNotifyAction } from "@/emails/InterviewScheduledEmail"
 import InterviewResponseEmail from "@/emails/InterviewResponseEmail"
 import ContactMessageEmail from "@/emails/ContactMessageEmail"
+import BugReportEmail from "@/emails/BugReportEmail"
 
 // Todas as funções abaixo são "best effort": nunca lançam erro para
 // não bloquear a ação principal do utilizador (candidatar-se, mudar
@@ -204,6 +205,35 @@ export async function sendContactMessageEmail(params: {
     } catch (err) {
         console.error("Erro ao enviar email de contacto: ", err)
         return { error: "Não foi possível enviar a mensagem, tenta novamente" }
+    }
+}
+
+export async function sendBugReportEmail(params: {
+    reporterName: string
+    reporterEmail: string
+    reporterType: "candidato" | "empresa"
+    pageUrl: string
+    description: string
+}): Promise<void> {
+    if (!canSendEmail()) return
+    try {
+        await resend.emails.send({
+            from: EMAIL_FROM,
+            to: CONTACT_EMAIL,
+            ...(params.reporterEmail ? { replyTo: params.reporterEmail } : {}),
+            subject: `[Erro reportado] ${params.reporterName}`,
+            react: (
+                <BugReportEmail
+                    reporterName={params.reporterName}
+                    reporterEmail={params.reporterEmail}
+                    reporterType={params.reporterType}
+                    pageUrl={params.pageUrl}
+                    description={params.description}
+                />
+            )
+        })
+    } catch (err) {
+        console.error("Erro ao enviar email de report de erro: ", err)
     }
 }
 

@@ -14,6 +14,7 @@ import { ApplicationsProvider } from "@/components/dashboard/ApplicationsContext
 import { ToastProvider } from "@/components/dashboard/ToastContext"
 import ToastViewport from "@/components/dashboard/ToastViewport"
 import OnboardingSkippedNotice from "@/components/dashboard/OnboardingSkippedNotice"
+import ReportBugWidget from "@/components/ui/ReportBugWidget"
 
 export default async function DashboardLayout({
     children
@@ -55,6 +56,7 @@ export default async function DashboardLayout({
                         </div>
                         <MobileTabBar />
                         <FavoritesDrawer />
+                        <ReportBugWidget />
                     </div>
                     <ToastViewport />
                     <OnboardingSkippedNotice />
