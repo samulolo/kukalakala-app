@@ -6,6 +6,7 @@ import type { CompanyJob, CompanyJobInput } from "@/lib/supabase/company-jobs"
 import type { JobSkill, SkillLevel } from "@/lib/supabase/jobs"
 import { createJob, updateJob } from "./actions"
 import { useToast } from "@/components/dashboard/ToastContext"
+import { ANGOLA_PROVINCES } from "@/lib/constants/angola-provinces"
 
 const employmentTypes = ["Full-time", "Meio-período", "Híbrido", "Estágio"]
 
@@ -175,13 +176,12 @@ function JobFormFields({ job, onClose }: { job: CompanyJob | null; onClose: () =
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Localização</label>
-                    <input
-                        type="text"
-                        value={form.location}
-                        onChange={handleChange("location")}
-                        placeholder="Luanda, Angola"
-                        className={inputClass}
-                    />
+                    <select value={form.location} onChange={handleChange("location")} className={inputClass}>
+                        <option value="" disabled>Seleciona a província</option>
+                        {ANGOLA_PROVINCES.map((province) => (
+                            <option key={province} value={province}>{province}</option>
+                        ))}
+                    </select>
                 </div>
                 <div>
                     <label className="block text-sm font-medium text-slate-700 mb-1.5">Tipo</label>
