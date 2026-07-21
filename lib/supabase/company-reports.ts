@@ -15,19 +15,34 @@ function emptyStatusCounts(): Record<ApplicationStatus, number> {
     return Object.fromEntries(statusOrder.map((status) => [status, 0])) as Record<ApplicationStatus, number>
 }
 
+export interface JobReportFilters {
+    from?: string
+    to?: string
+    jobId?: string
+    status?: ApplicationStatus | ""
+    category?: string
+    location?: string
+}
+
 // Relatório detalhado por vaga da empresa autenticada: quantas
 // candidaturas cada vaga recebeu, por estado. Base para a rota de
-// Relatórios (tabela + exportação em CSV).
-export async function getCompanyJobReports(): Promise<JobReportRow[]> {
+// Relatórios (tabela + exportação em CSV). Aceita filtros opcionais de
+// período, vaga, estado, categoria e localização.
+export async function getCompanyJobReports(filters: JobReportFilters = {}): Promise<JobReportRow[]> {
     const supabase = await createClient()
     const { data: { user } } = await getVerifiedUser()
     if (!user) return []
 
-    const { data: jobRows, error: jobsError } = await supabase
+    let jobsQuery = supabase
         .from("jobs")
         .select("id, title, is_active")
         .eq("company_id", user.id)
-        .order("created_at", { ascending: false })
+
+    if (filters.jobId) jobsQuery = jobsQuery.eq("id", filters.jobId)
+    if (filters.category) jobsQuery = jobsQuery.eq("category", filters.category)
+    if (filters.location) jobsQuery = jobsQuery.eq("location", filters.location)
+
+    const { data: jobRows, error: jobsError } = await jobsQuery.order("created_at", { ascending: false })
 
     if (jobsError) {
         console.error("Erro ao carregar relatório (vagas): ", jobsError)
@@ -39,10 +54,16 @@ export async function getCompanyJobReports(): Promise<JobReportRow[]> {
 
     const jobIds = jobs.map((job) => job.id)
 
-    const { data: appRows, error: appsError } = await supabase
+    let appsQuery = supabase
         .from("applications")
         .select("job_id, status")
         .in("job_id", jobIds)
+
+    if (filters.status) appsQuery = appsQuery.eq("status", filters.status)
+    if (filters.from) appsQuery = appsQuery.gte("created_at", `${filters.from}T00:00:00`)
+    if (filters.to) appsQuery = appsQuery.lte("created_at", `${filters.to}T23:59:59`)
+
+    const { data: appRows, error: appsError } = await appsQuery
 
     if (appsError) {
         console.error("Erro ao carregar relatório (candidaturas): ", appsError)
