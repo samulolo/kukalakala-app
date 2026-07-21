@@ -84,7 +84,12 @@ export default function Footer() {
                         <Link href="#" className="text-sm font-light hover:text-white transition-colors">
                             Twitter
                         </Link>
-                        <Link href="#" className="text-sm font-light hover:text-white transition-colors">
+                        <Link
+                            href="https://www.linkedin.com/company/136104167/"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm font-light hover:text-white transition-colors"
+                        >
                             LinkedIn
                         </Link>
                         <Link href="#" className="text-sm font-light hover:text-white transition-colors">
