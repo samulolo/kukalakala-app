@@ -7,7 +7,7 @@ export const metadata: Metadata = {
     alternates: { canonical: "/privacidade" }
 }
 
-const SUPPORT_EMAIL = "suporte@kukalakala.com"
+const SUPPORT_EMAIL = "contato@kukalakala.com"
 
 export default function PrivacyPolicyPage() {
     return (
