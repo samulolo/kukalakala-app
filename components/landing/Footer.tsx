@@ -22,7 +22,7 @@ const footerSections: FooterSection[] = [
     {
         title: "Empresa",
         links: [
-            { label: "Sobre", href: "#" },
+            { label: "Sobre", href: "/sobre" },
             { label: "Blog", href: "#" },
             { label: "Contato", href: "#" }
         ]
