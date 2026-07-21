@@ -113,7 +113,8 @@ function mapCompanyApplicantRow(row: CompanyApplicantRow): CompanyApplicant {
 
 // Candidaturas às vagas da empresa autenticada (RLS já restringe às
 // vagas que lhe pertencem, e ao perfil de quem se candidatou), mais
-// recentes primeiro.
+// recentes primeiro. Sem paginação — usada onde é preciso o conjunto
+// completo (pesquisa de candidatos, métricas, relatórios).
 export async function getCompanyApplications(): Promise<CompanyApplicant[]> {
     const supabase = await createClient()
     const { data: { user } } = await getVerifiedUser()
@@ -130,6 +131,68 @@ export async function getCompanyApplications(): Promise<CompanyApplicant[]> {
     }
 
     return (data ?? []).map((row) => mapCompanyApplicantRow(row as unknown as CompanyApplicantRow))
+}
+
+export interface CompanyApplicationFilters {
+    jobId?: string
+    status?: ApplicationStatus | ""
+    page?: number
+}
+
+export interface CompanyApplicantsPage {
+    applicants: CompanyApplicant[]
+    total: number
+    page: number
+    pageSize: number
+    totalPages: number
+}
+
+const COMPANY_APPLICANTS_PAGE_SIZE = 10
+
+// Candidaturas às vagas da empresa autenticada, com filtro por vaga e
+// estado, e paginação server-side — usada pela rota /empresa/candidaturas
+// (filtros e página atual vivem no URL, tal como em getMyApplicationsPage).
+export async function getCompanyApplicationsPage(filters: CompanyApplicationFilters): Promise<CompanyApplicantsPage> {
+    const supabase = await createClient()
+    const { data: { user } } = await getVerifiedUser()
+    const page = filters.page && filters.page > 0 ? Math.floor(filters.page) : 1
+
+    if (!user) {
+        return { applicants: [], total: 0, page, pageSize: COMPANY_APPLICANTS_PAGE_SIZE, totalPages: 0 }
+    }
+
+    const from = (page - 1) * COMPANY_APPLICANTS_PAGE_SIZE
+    const to = from + COMPANY_APPLICANTS_PAGE_SIZE - 1
+
+    let query = supabase
+        .from("applications")
+        .select(APPLICANT_COLUMNS, { count: "exact" })
+
+    if (filters.jobId) {
+        query = query.eq("job_id", filters.jobId)
+    }
+    if (filters.status) {
+        query = query.eq("status", filters.status)
+    }
+
+    const { data, error, count } = await query
+        .order("created_at", { ascending: false })
+        .range(from, to)
+
+    if (error) {
+        console.error("Erro ao carregar candidaturas: ", error)
+        return { applicants: [], total: 0, page, pageSize: COMPANY_APPLICANTS_PAGE_SIZE, totalPages: 0 }
+    }
+
+    const total = count ?? 0
+
+    return {
+        applicants: (data ?? []).map((row) => mapCompanyApplicantRow(row as unknown as CompanyApplicantRow)),
+        total,
+        page,
+        pageSize: COMPANY_APPLICANTS_PAGE_SIZE,
+        totalPages: Math.max(1, Math.ceil(total / COMPANY_APPLICANTS_PAGE_SIZE))
+    }
 }
 
 // Uma única candidatura, para o painel de análise de IA — RLS garante

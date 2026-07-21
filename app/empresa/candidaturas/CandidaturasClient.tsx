@@ -1,12 +1,13 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useState, useTransition } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import { MapPin, Briefcase, Eye, Sparkles } from "lucide-react"
-import type { CompanyApplicant } from "@/lib/supabase/company-applications"
+import type { CompanyApplicant, CompanyApplicantsPage } from "@/lib/supabase/company-applications"
 import type { ApplicationStatus } from "@/lib/supabase/applications"
 import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
 import type { SavedCandidate } from "@/lib/supabase/saved-candidates"
+import Pagination from "@/app/vagas/Pagination"
 import { changeApplicationStatus } from "./actions"
 import { getCompanyApplicationAiFit } from "@/lib/actions/ai-fit"
 import CandidateDetailsDrawer from "./CandidateDetailsDrawer"
@@ -14,26 +15,43 @@ import AiFitDrawer from "./AiFitDrawer"
 
 const statusOptions: ApplicationStatus[] = ["Em análise", "Entrevista", "Aprovado", "Rejeitado"]
 
+interface Filters {
+    jobId: string
+    status: ApplicationStatus | ""
+}
+
 interface CandidaturasClientProps {
-    applications: CompanyApplicant[]
+    applicationsPage: CompanyApplicantsPage
+    jobOptions: { id: string; title: string }[]
+    initialFilters: Filters
     // Candidatura a abrir automaticamente (vinda de um link de
     // notificação, ex. ?conversa=ID) — carregada à parte porque pode não
-    // estar entre as candidaturas visíveis com os filtros atuais.
+    // estar entre as candidaturas visíveis com os filtros/página atuais.
     openApplicant?: CompanyApplicant | null
     saved: SavedCandidate[]
 }
 
-export default function CandidaturasClient({ applications, openApplicant, saved }: CandidaturasClientProps) {
+export default function CandidaturasClient({
+    applicationsPage,
+    jobOptions,
+    initialFilters,
+    openApplicant,
+    saved
+}: CandidaturasClientProps) {
     const router = useRouter()
     const pathname = usePathname()
-    const [jobFilter, setJobFilter] = useState("all")
-    const [statusFilter, setStatusFilter] = useState<"all" | ApplicationStatus>("all")
+    const [isPending, startTransition] = useTransition()
+
+    const [jobId, setJobId] = useState(initialFilters.jobId)
+    const [status, setStatus] = useState(initialFilters.status)
     const [savingId, setSavingId] = useState<string | null>(null)
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [aiSelectedId, setAiSelectedId] = useState<string | null>(null)
     const [aiLoading, setAiLoading] = useState(false)
     const [aiError, setAiError] = useState<string | null>(null)
     const [aiResult, setAiResult] = useState<AiFitAnalysis | null>(null)
+
+    const applications = applicationsPage.applicants
 
     // Ajusta o estado durante a renderização (em vez de um efeito) para
     // abrir a candidatura vinda da notificação assim que chega uma nova.
@@ -60,17 +78,39 @@ export default function CandidaturasClient({ applications, openApplicant, saved 
         }
     }, [appliedOpenId, pathname, router])
 
-    const jobs = useMemo(() => {
-        const map = new Map<string, string>()
-        applications.forEach((a) => map.set(a.jobId, a.jobTitle))
-        return Array.from(map, ([id, title]) => ({ id, title }))
-    }, [applications])
+    const buildHref = (overrides: Partial<Filters & { page: number }> = {}) => {
+        const next = {
+            jobId: overrides.jobId ?? jobId,
+            status: overrides.status ?? status,
+            page: overrides.page ?? 1
+        }
 
-    const filtered = applications.filter((a) => {
-        if (jobFilter !== "all" && a.jobId !== jobFilter) return false
-        if (statusFilter !== "all" && a.status !== statusFilter) return false
-        return true
-    })
+        const params = new URLSearchParams()
+        if (next.jobId) params.set("job", next.jobId)
+        if (next.status) params.set("status", next.status)
+        if (next.page > 1) params.set("page", String(next.page))
+
+        const queryString = params.toString()
+        return queryString ? `${pathname}?${queryString}` : pathname
+    }
+
+    const navigate = (overrides: Partial<Filters & { page: number }> = {}) => {
+        startTransition(() => {
+            router.push(buildHref(overrides))
+        })
+    }
+
+    const handleJobChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value
+        setJobId(value)
+        navigate({ jobId: value })
+    }
+
+    const handleStatusChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+        const value = e.target.value as ApplicationStatus | ""
+        setStatus(value)
+        navigate({ status: value })
+    }
 
     const selectedApplicant =
         applications.find((a) => a.id === selectedId) ?? (openApplicant?.id === selectedId ? openApplicant : null)
@@ -79,9 +119,9 @@ export default function CandidaturasClient({ applications, openApplicant, saved 
     const savedNoteById = useMemo(() => new Map(saved.map((s) => [s.candidateId, s.note])), [saved])
     const selectedSavedNote = selectedApplicant ? savedNoteById.get(selectedApplicant.candidateId) ?? null : null
 
-    const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {
+    const handleApplicationStatusChange = async (applicationId: string, newStatus: ApplicationStatus) => {
         setSavingId(applicationId)
-        await changeApplicationStatus(applicationId, status)
+        await changeApplicationStatus(applicationId, newStatus)
         setSavingId(null)
     }
 
@@ -111,33 +151,29 @@ export default function CandidaturasClient({ applications, openApplicant, saved 
     return (
         <>
             <div className="flex flex-wrap items-center gap-3 mb-4">
-                <select value={jobFilter} onChange={(e) => setJobFilter(e.target.value)} className={selectClass}>
-                    <option value="all">Todas as vagas</option>
-                    {jobs.map((job) => (
+                <select value={jobId} onChange={handleJobChange} className={selectClass}>
+                    <option value="">Todas as vagas</option>
+                    {jobOptions.map((job) => (
                         <option key={job.id} value={job.id}>{job.title}</option>
                     ))}
                 </select>
 
-                <select
-                    value={statusFilter}
-                    onChange={(e) => setStatusFilter(e.target.value as "all" | ApplicationStatus)}
-                    className={selectClass}
-                >
-                    <option value="all">Todos os estados</option>
-                    {statusOptions.map((status) => (
-                        <option key={status} value={status}>{status}</option>
+                <select value={status} onChange={handleStatusChange} className={selectClass}>
+                    <option value="">Todos os estados</option>
+                    {statusOptions.map((option) => (
+                        <option key={option} value={option}>{option}</option>
                     ))}
                 </select>
 
                 <span className="text-xs text-slate-400 font-light ml-auto">
-                    {filtered.length} {filtered.length === 1 ? "candidatura" : "candidaturas"}
+                    {applicationsPage.total} {applicationsPage.total === 1 ? "candidatura" : "candidaturas"}
                 </span>
             </div>
 
-            <div className="p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
-                {filtered.length > 0 ? (
+            <div className={`p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm ${isPending ? "opacity-50 transition-opacity" : "transition-opacity"}`}>
+                {applications.length > 0 ? (
                     <ul className="divide-y divide-slate-100 px-2">
-                        {filtered.map((application) => (
+                        {applications.map((application) => (
                             <li
                                 key={application.id}
                                 className="py-4 px-1 flex flex-col sm:flex-row sm:items-center gap-3"
@@ -183,12 +219,12 @@ export default function CandidaturasClient({ applications, openApplicant, saved 
 
                                 <select
                                     value={application.status}
-                                    onChange={(e) => handleStatusChange(application.id, e.target.value as ApplicationStatus)}
+                                    onChange={(e) => handleApplicationStatusChange(application.id, e.target.value as ApplicationStatus)}
                                     disabled={savingId === application.id}
                                     className={`${selectClass} flex-shrink-0 disabled:opacity-50`}
                                 >
-                                    {statusOptions.map((status) => (
-                                        <option key={status} value={status}>{status}</option>
+                                    {statusOptions.map((option) => (
+                                        <option key={option} value={option}>{option}</option>
                                     ))}
                                 </select>
                             </li>
@@ -197,16 +233,24 @@ export default function CandidaturasClient({ applications, openApplicant, saved 
                 ) : (
                     <div className="text-center py-16">
                         <p className="text-slate-600 font-light text-sm">
-                            Nenhuma candidatura encontrada
+                            {jobId || status ? "Nenhuma candidatura encontrada com estes filtros" : "Nenhuma candidatura encontrada"}
                         </p>
                     </div>
                 )}
             </div>
 
+            {applicationsPage.totalPages > 1 && (
+                <Pagination
+                    page={applicationsPage.page}
+                    totalPages={applicationsPage.totalPages}
+                    buildHref={(targetPage) => buildHref({ page: targetPage })}
+                />
+            )}
+
             <CandidateDetailsDrawer
                 applicant={selectedApplicant}
                 onClose={() => setSelectedId(null)}
-                onStatusChange={handleStatusChange}
+                onStatusChange={handleApplicationStatusChange}
                 saving={savingId === selectedId}
                 savedNote={selectedSavedNote}
             />
