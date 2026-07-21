@@ -1,5 +1,6 @@
 import { Search, Sparkles, BellRing, MessageCircle, BarChart3, Briefcase } from "lucide-react"
 import FeatureCard from "./FeatureCard"
+import Reveal from "./Reveal"
 
 const features = [
     {
@@ -39,7 +40,7 @@ export default function FeaturesSection() {
         <section id="features" className="py-24 px-6 bg-gradient-to-b from-white to-slate-50">
             <div className="max-w-6xl mx-auto">
                 {/* Header */}
-                <div className="text-center space-y-4 mb-16">
+                <Reveal className="text-center space-y-4 mb-16">
                     <p className="text-sm font-medium text-blue-700 uppercase tracking-wider">
                         Recursos Principais
                     </p>
@@ -49,17 +50,18 @@ export default function FeaturesSection() {
                     <p className="text-base text-slate-600 max-w-2xl mx-auto font-light leading-relaxed">
                         Uma plataforma completa e integrada para conectar os melhores talentos com as melhores oportunidades
                     </p>
-                </div>
+                </Reveal>
 
                 {/* Features Grid */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {features.map((feature, index) => (
-                        <FeatureCard
-                            key={index}
-                            icon={feature.icon}
-                            title={feature.title}
-                            description={feature.description}
-                        />
+                        <Reveal key={index} delay={(index % 3) * 80}>
+                            <FeatureCard
+                                icon={feature.icon}
+                                title={feature.title}
+                                description={feature.description}
+                            />
+                        </Reveal>
                     ))}
                 </div>
             </div>

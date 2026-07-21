@@ -1,6 +1,7 @@
 import Link from "next/link"
 import Image from "next/image"
 import { Check } from "lucide-react"
+import Reveal from "./Reveal"
 
 interface Benefit {
     title: string
@@ -35,7 +36,7 @@ export default function UserTypeSection({
     return (
         <section className={`py-24 px-6 ${!isCandidate ? "bg-slate-50" : ""}`}>
             <div className="max-w-6xl mx-auto">
-                <div className={`grid grid-cols-1 lg:grid-cols-2 gap-16 items-center ${!isCandidate ? "lg:grid-cols-2" : ""}`}>
+                <Reveal className={`grid grid-cols-1 lg:grid-cols-2 gap-16 items-center ${!isCandidate ? "lg:grid-cols-2" : ""}`}>
                     {/* Content */}
                     <div className={!isCandidate ? "lg:order-2" : ""}>
                         <p className="text-sm font-medium text-blue-700 uppercase tracking-wider mb-4">
@@ -80,20 +81,20 @@ export default function UserTypeSection({
 
                     {/* Visual */}
                     <div className={!isCandidate ? "lg:order-1" : ""}>
-                        <div className="relative aspect-square rounded-2xl overflow-hidden border border-blue-200 shadow-lg shadow-blue-100/50">
+                        <div className="group relative aspect-square rounded-2xl overflow-hidden border border-blue-200 shadow-lg shadow-blue-100/50">
                             <Image
                                 src={imageSrc}
                                 alt={imageAlt}
                                 fill
                                 sizes="(min-width: 1024px) 40vw, 90vw"
-                                className="object-cover"
+                                className="object-cover transition-transform duration-500 group-hover:scale-105"
                             />
                         </div>
                         <p className="text-center text-sm text-slate-500 font-light mt-4 tracking-tight">
                             {caption}
                         </p>
                     </div>
-                </div>
+                </Reveal>
             </div>
         </section>
     )

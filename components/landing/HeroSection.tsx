@@ -12,6 +12,10 @@ export default function HeroSection() {
                         {/* Badge */}
                         <div className="inline-block">
                             <div className="flex items-center gap-2 text-sm font-medium text-blue-700 bg-blue-50 px-4 py-2 rounded-full border border-blue-200">
+                                <span className="relative flex h-2 w-2">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-600" />
+                                </span>
                                 <Sparkles className="w-4 h-4" />
                                 Bem-vindo à Kukalakala
                             </div>
@@ -48,7 +52,8 @@ export default function HeroSection() {
                     {/* Foto */}
                     <div className="hidden lg:block relative">
                         <div className="absolute -inset-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-[2rem] -z-10" />
-                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50">
+                        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-blue-200/30 blur-3xl -z-10" />
+                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50 animate-float-slow">
                             <Image
                                 src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80"
                                 alt="Duas pessoas a apertar as mãos, representando a ligação entre talentos e oportunidades"

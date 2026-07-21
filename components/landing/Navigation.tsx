@@ -18,13 +18,13 @@ export default async function Navigation() {
                 </Link>
 
                 <div className="hidden md:flex items-center gap-8">
-                    <Link href="/#features" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                    <Link href="/#features" className="relative text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-blue-700 after:transition-all after:duration-300 hover:after:w-full">
                         Recursos
                     </Link>
-                    <Link href="/vagas" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                    <Link href="/vagas" className="relative text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-blue-700 after:transition-all after:duration-300 hover:after:w-full">
                         Vagas
                     </Link>
-                    <Link href="/#how-it-works" className="text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors">
+                    <Link href="/#how-it-works" className="relative text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors after:content-[''] after:absolute after:left-0 after:-bottom-1 after:h-0.5 after:w-0 after:bg-blue-700 after:transition-all after:duration-300 hover:after:w-full">
                         Como Funciona
                     </Link>
                 </div>

@@ -1,3 +1,5 @@
+import Reveal from "./Reveal"
+
 interface Step {
     number: number
     title: string
@@ -27,7 +29,7 @@ export default function HowItWorksSection() {
         <section id="how-it-works" className="py-16 px-6 bg-slate-50">
             <div className="max-w-5xl mx-auto">
                 {/* Header */}
-                <div className="text-center space-y-2 mb-10">
+                <Reveal className="text-center space-y-2 mb-10">
                     <p className="text-xs font-medium text-blue-700 uppercase tracking-wider">
                         Processo Simples
                     </p>
@@ -37,12 +39,12 @@ export default function HowItWorksSection() {
                     <p className="text-sm text-slate-600 max-w-xl mx-auto font-light">
                         Três passos simples para começar sua jornada
                     </p>
-                </div>
+                </Reveal>
 
                 {/* Steps */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                     {steps.map((step) => (
-                        <div key={step.number} className="relative">
+                        <Reveal key={step.number} delay={(step.number - 1) * 120} className="relative group">
                             {/* Connector Line (hidden on mobile) */}
                             {step.number < 3 && (
                                 <div className="hidden md:block absolute top-6 left-[60%] w-[calc(100%+24px)] h-0.5 bg-gradient-to-r from-blue-300 to-blue-50" />
@@ -51,7 +53,7 @@ export default function HowItWorksSection() {
                             {/* Step Card */}
                             <div className="relative z-10 text-center space-y-2">
                                 {/* Step Number */}
-                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-white font-semibold text-base mx-auto shadow-md">
+                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-white font-semibold text-base mx-auto shadow-md transition-transform duration-300 group-hover:scale-110">
                                     {step.number}
                                 </div>
 
@@ -65,7 +67,7 @@ export default function HowItWorksSection() {
                                     </p>
                                 </div>
                             </div>
-                        </div>
+                        </Reveal>
                     ))}
                 </div>
             </div>
