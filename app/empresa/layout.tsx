@@ -5,6 +5,7 @@ import { getMyNotifications, getUnreadNotificationCount } from "@/lib/supabase/n
 import Sidebar from "@/components/empresa/Sidebar"
 import Topbar from "@/components/empresa/Topbar"
 import MobileTabBar from "@/components/empresa/MobileTabBar"
+import VerificationBanner from "@/components/empresa/VerificationBanner"
 import { ToastProvider } from "@/components/dashboard/ToastContext"
 import ToastViewport from "@/components/dashboard/ToastViewport"
 
@@ -59,6 +60,12 @@ export default async function EmpresaLayout({
                     />
                     <main className="flex-1 px-6 py-8 pb-20 md:pb-8">
                         <div className="max-w-5xl mx-auto">
+                            {company && (
+                                <VerificationBanner
+                                    status={company.verificationStatus}
+                                    rejectionReason={company.verificationRejectionReason}
+                                />
+                            )}
                             {children}
                         </div>
                     </main>
