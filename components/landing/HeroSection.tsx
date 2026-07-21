@@ -1,6 +1,6 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Sparkles } from "lucide-react"
-import HeroIllustration from "./HeroIllustration"
 
 export default function HeroSection() {
     return (
@@ -45,9 +45,19 @@ export default function HeroSection() {
                         </div>
                     </div>
 
-                    {/* Illustration */}
-                    <div className="hidden lg:block">
-                        <HeroIllustration />
+                    {/* Foto */}
+                    <div className="hidden lg:block relative">
+                        <div className="absolute -inset-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-[2rem] -z-10" />
+                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50">
+                            <Image
+                                src="https://images.unsplash.com/photo-1521791136064-7986c2920216?auto=format&fit=crop&w=1200&q=80"
+                                alt="Duas pessoas a apertar as mãos, representando a ligação entre talentos e oportunidades"
+                                fill
+                                sizes="(min-width: 1024px) 40vw, 0px"
+                                className="object-cover"
+                                priority
+                            />
+                        </div>
                     </div>
                 </div>
             </div>

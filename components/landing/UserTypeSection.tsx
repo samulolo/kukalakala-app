@@ -1,6 +1,6 @@
 import Link from "next/link"
+import Image from "next/image"
 import { Check } from "lucide-react"
-import { ReactNode } from "react"
 
 interface Benefit {
     title: string
@@ -14,7 +14,8 @@ interface UserTypeSectionProps {
     benefits: Benefit[]
     ctaText: string
     ctaLink: string
-    illustration: ReactNode
+    imageSrc: string
+    imageAlt: string
     caption: string
 }
 
@@ -25,7 +26,8 @@ export default function UserTypeSection({
     benefits,
     ctaText,
     ctaLink,
-    illustration,
+    imageSrc,
+    imageAlt,
     caption
 }: UserTypeSectionProps) {
     const isCandidate = type === "candidate"
@@ -78,8 +80,14 @@ export default function UserTypeSection({
 
                     {/* Visual */}
                     <div className={!isCandidate ? "lg:order-1" : ""}>
-                        <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl aspect-square p-8 border border-blue-200">
-                            {illustration}
+                        <div className="relative aspect-square rounded-2xl overflow-hidden border border-blue-200 shadow-lg shadow-blue-100/50">
+                            <Image
+                                src={imageSrc}
+                                alt={imageAlt}
+                                fill
+                                sizes="(min-width: 1024px) 40vw, 90vw"
+                                className="object-cover"
+                            />
                         </div>
                         <p className="text-center text-sm text-slate-500 font-light mt-4 tracking-tight">
                             {caption}

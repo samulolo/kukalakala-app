@@ -3,8 +3,6 @@ import HeroSection from "@/components/landing/HeroSection"
 import FeaturesSection from "@/components/landing/FeaturesSection"
 import VagasSection from "@/components/landing/VagasSection"
 import UserTypeSection from "@/components/landing/UserTypeSection"
-import CandidateIllustration from "@/components/landing/CandidateIllustration"
-import CompanyIllustration from "@/components/landing/CompanyIllustration"
 import HowItWorksSection from "@/components/landing/HowItWorksSection"
 import CTASection from "@/components/landing/CTASection"
 import Footer from "@/components/landing/Footer"
@@ -53,7 +51,8 @@ export default function Home() {
                 benefits={candidateBenefits}
                 ctaText="Começar como Candidato"
                 ctaLink="/auth/login?type=candidate"
-                illustration={<CandidateIllustration />}
+                imageSrc="https://images.unsplash.com/photo-1653669485641-8582ad808121?auto=format&fit=crop&w=1200&q=80"
+                imageAlt="Candidato a trabalhar no portátil, a candidatar-se a uma vaga"
                 caption="Seu Próximo Desafio"
             />
             <UserTypeSection
@@ -63,7 +62,8 @@ export default function Home() {
                 benefits={companyBenefits}
                 ctaText="Começar como Empresa"
                 ctaLink="/auth/register?type=company"
-                illustration={<CompanyIllustration />}
+                imageSrc="https://images.unsplash.com/photo-1573497620053-ea5300f94f21?auto=format&fit=crop&w=1200&q=80"
+                imageAlt="Entrevista de trabalho entre uma empresa e uma candidata"
                 caption="Seus Próximos Talentos"
             />
             <HowItWorksSection />
