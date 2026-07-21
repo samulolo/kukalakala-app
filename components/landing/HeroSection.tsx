@@ -51,7 +51,14 @@ export default function HeroSection() {
 
     return (
         <section className="relative overflow-hidden pt-40 pb-24 px-6">
-            <div className="absolute inset-0 bg-grid-fade pointer-events-none" aria-hidden="true" />
+            <div
+                className="absolute -top-40 -right-24 w-[34rem] h-[34rem] rounded-full bg-blue-100/50 blur-3xl pointer-events-none"
+                aria-hidden="true"
+            />
+            <div
+                className="absolute top-1/3 -left-40 w-[26rem] h-[26rem] rounded-full bg-blue-50 blur-3xl pointer-events-none"
+                aria-hidden="true"
+            />
             <div className="relative z-10 max-w-6xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                     {/* Content */}
@@ -114,8 +121,6 @@ export default function HeroSection() {
 
                     {/* Foto */}
                     <div className="hidden lg:block relative">
-                        <div className="absolute -inset-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-[2rem] -z-10" />
-                        <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-blue-200/30 blur-3xl -z-10" />
                         <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50">
                             <Image
                                 src={current.imageSrc}
