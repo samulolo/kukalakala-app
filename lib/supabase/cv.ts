@@ -60,8 +60,20 @@ export async function getCvSignedUrl(path: string): Promise<{ url: string | null
     const { data, error } = await supabase.storage.from(CV_BUCKET).createSignedUrl(path, 60 * 5)
 
     if (error || !data) {
-        console.error("Erro ao gerar link do CV: ", error)
-        return { url: null, error: error?.message ?? "Não foi possível gerar o link" }
+        // O Supabase Storage devolve sempre "Object not found" tanto para
+        // um ficheiro que realmente já não existe como para um acesso
+        // negado pela RLS — não há forma de distinguir os dois casos a
+        // partir daqui. Traduzimos para uma mensagem que faz sentido em
+        // qualquer um deles, e mantemos o erro em bruto só nos logs do
+        // servidor (mais fácil de depurar do que a string genérica).
+        console.error("Erro ao gerar link do CV (path: ", path, "): ", error)
+        const isNotFound = error?.message?.toLowerCase().includes("not found")
+        return {
+            url: null,
+            error: isNotFound
+                ? "Não foi possível encontrar este CV. Pode ter sido removido — pede ao candidato para o carregar de novo."
+                : (error?.message ?? "Não foi possível gerar o link")
+        }
     }
 
     return { url: data.signedUrl, error: null }
