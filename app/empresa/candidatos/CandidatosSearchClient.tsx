@@ -1,34 +1,42 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, MapPin, Briefcase, Eye, Sparkles, X } from "lucide-react"
+import { Search, MapPin, Briefcase, Eye, Sparkles, X, Users } from "lucide-react"
 import type { CompanyApplicant } from "@/lib/supabase/company-applications"
 import type { ApplicationStatus } from "@/lib/supabase/applications"
 import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
-import { groupApplicationsByCandidate, searchCandidates, type CandidateGroup } from "@/lib/candidate-search"
+import type { PoolCandidate } from "@/lib/supabase/candidate-pool"
+import { groupApplicationsByCandidate, mergeCandidatePool, searchCandidates, type CandidateGroup } from "@/lib/candidate-search"
 import { changeApplicationStatus } from "../candidaturas/actions"
 import { getCompanyApplicationAiFit } from "@/lib/actions/ai-fit"
 import CandidateDetailsDrawer from "../candidaturas/CandidateDetailsDrawer"
 import AiFitDrawer from "../candidaturas/AiFitDrawer"
+import CandidatePreviewDrawer from "./CandidatePreviewDrawer"
 
 interface CandidatosSearchClientProps {
     applications: CompanyApplicant[]
+    pool: PoolCandidate[]
 }
 
-export default function CandidatosSearchClient({ applications }: CandidatosSearchClientProps) {
+export default function CandidatosSearchClient({ applications, pool }: CandidatosSearchClientProps) {
     const [query, setQuery] = useState("")
     const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null)
+    const [previewCandidateId, setPreviewCandidateId] = useState<string | null>(null)
     const [savingId, setSavingId] = useState<string | null>(null)
     const [aiSelectedId, setAiSelectedId] = useState<string | null>(null)
     const [aiLoading, setAiLoading] = useState(false)
     const [aiError, setAiError] = useState<string | null>(null)
     const [aiResult, setAiResult] = useState<AiFitAnalysis | null>(null)
 
-    const candidates = useMemo(() => groupApplicationsByCandidate(applications), [applications])
+    const candidates = useMemo(
+        () => mergeCandidatePool(groupApplicationsByCandidate(applications), pool),
+        [applications, pool]
+    )
     const results = useMemo(() => searchCandidates(candidates, query), [candidates, query])
 
     const selectedApplicant = applications.find((a) => a.id === selectedApplicationId) ?? null
     const aiSelectedApplicant = applications.find((a) => a.id === aiSelectedId) ?? null
+    const previewCandidate = candidates.find((c) => c.candidateId === previewCandidateId) ?? null
 
     const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {
         setSavingId(applicationId)
@@ -80,8 +88,8 @@ export default function CandidatosSearchClient({ applications }: CandidatosSearc
             </div>
 
             <p className="text-xs text-slate-400 font-light mb-4">
-                {results.length} {results.length === 1 ? "candidato encontrado" : "candidatos encontrados"} entre
-                quem já se candidatou às tuas vagas
+                {results.length} {results.length === 1 ? "candidato encontrado" : "candidatos encontrados"} — inclui
+                quem já se candidatou às tuas vagas e o banco de talentos pesquisável
             </p>
 
             <div className="p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
@@ -93,6 +101,7 @@ export default function CandidatosSearchClient({ applications }: CandidatosSearc
                                 candidate={candidate}
                                 savingId={savingId}
                                 onOpenDetails={setSelectedApplicationId}
+                                onOpenPreview={setPreviewCandidateId}
                                 onOpenAiFit={handleOpenAiFit}
                                 onStatusChange={handleStatusChange}
                             />
@@ -101,9 +110,7 @@ export default function CandidatosSearchClient({ applications }: CandidatosSearc
                 ) : (
                     <div className="text-center py-16">
                         <p className="text-slate-600 font-light text-sm">
-                            {query
-                                ? "Nenhum candidato corresponde à pesquisa"
-                                : "Ainda não recebeste nenhuma candidatura"}
+                            {query ? "Nenhum candidato corresponde à pesquisa" : "Ainda não há candidatos para mostrar"}
                         </p>
                     </div>
                 )}
@@ -123,6 +130,8 @@ export default function CandidatosSearchClient({ applications }: CandidatosSearc
                 loading={aiLoading}
                 error={aiError}
             />
+
+            <CandidatePreviewDrawer candidate={previewCandidate} onClose={() => setPreviewCandidateId(null)} />
         </>
     )
 }
@@ -136,16 +145,18 @@ function CandidateRow({
     candidate,
     savingId,
     onOpenDetails,
+    onOpenPreview,
     onOpenAiFit,
     onStatusChange
 }: {
     candidate: CandidateGroup
     savingId: string | null
     onOpenDetails: (applicationId: string) => void
+    onOpenPreview: (candidateId: string) => void
     onOpenAiFit: (applicationId: string) => void
     onStatusChange: (applicationId: string, status: ApplicationStatus) => void
 }) {
-    const primary = candidate.applications[0]
+    const primary = candidate.applications[0] ?? null
 
     return (
         <li className="py-4 px-1 flex flex-col sm:flex-row sm:items-center gap-3">
@@ -162,6 +173,12 @@ function CandidateRow({
                             {candidate.bestAiScore}% compatibilidade
                         </span>
                     )}
+                    {!primary && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-slate-100 text-slate-500 text-xs font-medium flex-shrink-0">
+                            <Users className="w-3 h-3" strokeWidth={1.75} />
+                            Banco de talentos
+                        </span>
+                    )}
                 </div>
                 <p className="text-xs text-slate-500 font-light truncate">
                     {candidate.headline || "Sem cargo indicado"}
@@ -172,40 +189,55 @@ function CandidateRow({
                         </span>
                     )}
                 </p>
-                <p className="text-xs text-slate-400 font-light mt-0.5 inline-flex flex-wrap items-center gap-1">
-                    <Briefcase className="w-3 h-3" strokeWidth={1.5} />
-                    {candidate.applications.map((a) => a.jobTitle).join(", ")}
-                </p>
+                {primary && (
+                    <p className="text-xs text-slate-400 font-light mt-0.5 inline-flex flex-wrap items-center gap-1">
+                        <Briefcase className="w-3 h-3" strokeWidth={1.5} />
+                        {candidate.applications.map((a) => a.jobTitle).join(", ")}
+                    </p>
+                )}
             </div>
 
-            <button
-                type="button"
-                onClick={() => onOpenDetails(primary.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
-            >
-                <Eye className="w-4 h-4" strokeWidth={1.75} />
-                Ver detalhes
-            </button>
+            {primary ? (
+                <>
+                    <button
+                        type="button"
+                        onClick={() => onOpenDetails(primary.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
+                    >
+                        <Eye className="w-4 h-4" strokeWidth={1.75} />
+                        Ver detalhes
+                    </button>
 
-            <button
-                type="button"
-                onClick={() => onOpenAiFit(primary.id)}
-                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0"
-            >
-                <Sparkles className="w-4 h-4" strokeWidth={1.75} />
-                Análise IA
-            </button>
+                    <button
+                        type="button"
+                        onClick={() => onOpenAiFit(primary.id)}
+                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0"
+                    >
+                        <Sparkles className="w-4 h-4" strokeWidth={1.75} />
+                        Análise IA
+                    </button>
 
-            <select
-                value={primary.status}
-                onChange={(e) => onStatusChange(primary.id, e.target.value as ApplicationStatus)}
-                disabled={savingId === primary.id}
-                className={`${selectClass} flex-shrink-0 disabled:opacity-50`}
-            >
-                {statusOptions.map((status) => (
-                    <option key={status} value={status}>{status}</option>
-                ))}
-            </select>
+                    <select
+                        value={primary.status}
+                        onChange={(e) => onStatusChange(primary.id, e.target.value as ApplicationStatus)}
+                        disabled={savingId === primary.id}
+                        className={`${selectClass} flex-shrink-0 disabled:opacity-50`}
+                    >
+                        {statusOptions.map((status) => (
+                            <option key={status} value={status}>{status}</option>
+                        ))}
+                    </select>
+                </>
+            ) : (
+                <button
+                    type="button"
+                    onClick={() => onOpenPreview(candidate.candidateId)}
+                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
+                >
+                    <Eye className="w-4 h-4" strokeWidth={1.75} />
+                    Ver perfil
+                </button>
+            )}
         </li>
     )
 }

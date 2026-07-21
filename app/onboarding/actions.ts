@@ -25,7 +25,8 @@ export async function skipOnboarding(fullName: string) {
         phone: "",
         bio: "",
         level: "",
-        skills: []
+        skills: [],
+        searchable: false
     })
     return { error }
 }

@@ -1,4 +1,5 @@
 import type { CompanyApplicant } from "@/lib/supabase/company-applications"
+import type { PoolCandidate } from "@/lib/supabase/candidate-pool"
 
 export interface CandidateGroup {
     candidateId: string
@@ -74,6 +75,33 @@ export function candidateRelevance(candidate: CandidateGroup, query: string): nu
     return score
 }
 
+// Junta quem já se candidatou (tem candidaturas reais, com estado,
+// mensagens, etc.) com o resto do banco de talentos que optou por
+// ficar pesquisável (profiles.searchable) mas nunca se candidatou à
+// empresa autenticada — sem duplicar quem já está nos dois lados.
+export function mergeCandidatePool(applicants: CandidateGroup[], pool: PoolCandidate[]): CandidateGroup[] {
+    const existingIds = new Set(applicants.map((c) => c.candidateId))
+
+    const poolOnly: CandidateGroup[] = pool
+        .filter((p) => !existingIds.has(p.candidateId))
+        .map((p) => ({
+            candidateId: p.candidateId,
+            name: p.name,
+            headline: p.headline,
+            location: p.location,
+            phone: p.phone,
+            level: p.level,
+            skills: p.skills,
+            bio: p.bio,
+            cvFilename: p.cvFilename,
+            cvPath: p.cvPath,
+            applications: [],
+            bestAiScore: null
+        }))
+
+    return [...applicants, ...poolOnly]
+}
+
 // Pesquisa e ordena: primeiro por relevância ao termo pesquisado, depois
 // pelo melhor score de compatibilidade de IA já calculado (se existir),
 // e por fim pela candidatura mais recente.
@@ -89,7 +117,9 @@ export function searchCandidates(candidates: CandidateGroup[], query: string): C
         if ((b.candidate.bestAiScore ?? -1) !== (a.candidate.bestAiScore ?? -1)) {
             return (b.candidate.bestAiScore ?? -1) - (a.candidate.bestAiScore ?? -1)
         }
-        return b.candidate.applications[0].createdAt.localeCompare(a.candidate.applications[0].createdAt)
+        const aDate = a.candidate.applications[0]?.createdAt ?? ""
+        const bDate = b.candidate.applications[0]?.createdAt ?? ""
+        return bDate.localeCompare(aDate)
     })
 
     return scored.map(({ candidate }) => candidate)

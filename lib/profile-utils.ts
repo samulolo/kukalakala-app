@@ -13,6 +13,7 @@ export interface Profile {
     skills: string[]
     cvFilename: string | null
     cvPath: string | null
+    searchable: boolean
 }
 
 export interface ChecklistItem {
@@ -32,6 +33,7 @@ export interface ProfileInput {
     bio: string
     level: string
     skills: string[]
+    searchable: boolean
 }
 
 export function checklistFromProfile(profile: Pick<Profile, "fullName" | "location" | "phone" | "headline" | "level" | "bio" | "skills" | "cvFilename"> | null): ChecklistItem[] {

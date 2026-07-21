@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { MapPin, Phone, BadgeCheck, Check, X } from "lucide-react"
+import { MapPin, Phone, BadgeCheck, Check, X, Search } from "lucide-react"
 import { checklistFromProfile, completionFromChecklist, type Profile } from "@/lib/profile-utils"
 import { saveProfile } from "./actions"
 import CvUploader from "@/components/dashboard/CvUploader"
@@ -17,6 +17,7 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
         bio: initialProfile?.bio ?? "",
         level: initialProfile?.level ?? ""
     })
+    const [searchable, setSearchable] = useState(initialProfile?.searchable ?? false)
     const [skills, setSkills] = useState<string[]>(initialProfile?.skills ?? [])
     const [skillInput, setSkillInput] = useState("")
     const [cv, setCv] = useState({
@@ -69,7 +70,8 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
                 phone: form.phone,
                 bio: form.bio,
                 level: form.level,
-                skills
+                skills,
+                searchable
             })
 
             if (result.error) {
@@ -219,6 +221,37 @@ export default function ProfileForm({ initialProfile }: { initialProfile: Profil
                                 rows={4}
                                 className={inputClass}
                             />
+                        </div>
+
+                        <div className="flex items-start justify-between gap-4 p-4 rounded-xl bg-slate-50">
+                            <div className="flex items-start gap-3">
+                                <Search className="w-4.5 h-4.5 text-slate-400 mt-0.5 flex-shrink-0" strokeWidth={1.75} />
+                                <div>
+                                    <p className="text-sm font-medium text-slate-900">Visível para empresas em pesquisas</p>
+                                    <p className="text-xs text-slate-500 font-light mt-0.5">
+                                        Permite que qualquer empresa te encontre ao pesquisar candidatos, mesmo sem
+                                        te candidatares diretamente a uma vaga.
+                                    </p>
+                                </div>
+                            </div>
+                            <button
+                                type="button"
+                                role="switch"
+                                aria-checked={searchable}
+                                onClick={() => {
+                                    setSearchable((prev) => !prev)
+                                    setSaved(false)
+                                }}
+                                className={`relative inline-flex flex-shrink-0 items-center h-6 w-11 rounded-full transition-colors ${
+                                    searchable ? "bg-blue-700" : "bg-slate-300"
+                                }`}
+                            >
+                                <span
+                                    className={`inline-block w-4 h-4 transform rounded-full bg-white transition-transform ${
+                                        searchable ? "translate-x-6" : "translate-x-1"
+                                    }`}
+                                />
+                            </button>
                         </div>
 
                         {error && <p className="text-sm text-red-600">{error}</p>}

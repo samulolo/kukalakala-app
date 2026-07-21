@@ -16,6 +16,7 @@ interface ProfileRow {
     cv_filename: string | null
     cv_path: string | null
     email: string | null
+    searchable: boolean | null
 }
 
 function mapProfileRow(row: ProfileRow): Profile {
@@ -29,7 +30,8 @@ function mapProfileRow(row: ProfileRow): Profile {
         level: row.level,
         skills: row.skills ?? [],
         cvFilename: row.cv_filename,
-        cvPath: row.cv_path
+        cvPath: row.cv_path,
+        searchable: row.searchable ?? false
     }
 }
 
@@ -82,6 +84,7 @@ export async function upsertMyProfile(input: ProfileInput): Promise<{ error: str
         bio: input.bio,
         level: input.level,
         skills: input.skills,
+        searchable: input.searchable,
         email: user.email ?? ""
     })
 

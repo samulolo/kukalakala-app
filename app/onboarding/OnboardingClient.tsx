@@ -99,7 +99,8 @@ export default function OnboardingClient({ initialName }: { initialName: string 
                     phone: form.phone,
                     bio: form.bio,
                     level: form.level,
-                    skills
+                    skills,
+                    searchable: false
                 })
 
                 if (result.error) {
