@@ -50,8 +50,9 @@ export default function HeroSection() {
     const current = content[audience]
 
     return (
-        <section className="pt-40 pb-24 px-6">
-            <div className="max-w-6xl mx-auto">
+        <section className="relative overflow-hidden pt-40 pb-24 px-6">
+            <div className="absolute inset-0 bg-grid-fade pointer-events-none" aria-hidden="true" />
+            <div className="relative z-10 max-w-6xl mx-auto">
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
                     {/* Content */}
                     <div className="space-y-8">
@@ -115,7 +116,7 @@ export default function HeroSection() {
                     <div className="hidden lg:block relative">
                         <div className="absolute -inset-4 bg-gradient-to-br from-blue-100 to-blue-50 rounded-[2rem] -z-10" />
                         <div className="absolute -top-10 -left-10 w-40 h-40 rounded-full bg-blue-200/30 blur-3xl -z-10" />
-                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50 animate-float-slow">
+                        <div className="relative aspect-[4/5] rounded-2xl overflow-hidden border border-slate-200 shadow-xl shadow-slate-200/50">
                             <Image
                                 src={current.imageSrc}
                                 alt={current.imageAlt}
