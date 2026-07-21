@@ -1,5 +1,5 @@
 import Link from "next/link"
-import { Briefcase, Users, Clock, ArrowUpRight } from "lucide-react"
+import { Briefcase, Users, Clock, TrendingUp, ArrowUpRight } from "lucide-react"
 import { getCompanyJobs } from "@/lib/supabase/company-jobs"
 import { getCompanyApplications } from "@/lib/supabase/company-applications"
 import { buildMonthlyEvolution } from "@/lib/supabase/company-metrics"
@@ -12,13 +12,15 @@ export default async function EmpresaHomePage() {
 
     const activeJobsCount = jobs.filter((job) => job.isActive).length
     const pendingCount = applications.filter((a) => a.status === "Em análise").length
+    const approvedCount = applications.filter((a) => a.status === "Aprovado").length
+    const hiringRate = applications.length > 0 ? Math.round((approvedCount / applications.length) * 100) : 0
     const recentApplications = applications.slice(0, 6)
     const monthlyEvolution = buildMonthlyEvolution(applications.map((a) => a.createdAt))
 
     return (
         <div className="space-y-6">
 
-            <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard
                     icon={Briefcase}
                     label="Vagas ativas"
@@ -33,6 +35,11 @@ export default async function EmpresaHomePage() {
                     icon={Clock}
                     label="Por analisar"
                     value={String(pendingCount)}
+                />
+                <StatCard
+                    icon={TrendingUp}
+                    label="Taxa média de contratação"
+                    value={applications.length > 0 ? `${hiringRate}%` : "—"}
                 />
             </div>
 
