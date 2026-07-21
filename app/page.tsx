@@ -3,6 +3,7 @@ import HeroSection from "@/components/landing/HeroSection"
 import FeaturesSection from "@/components/landing/FeaturesSection"
 import VagasSection from "@/components/landing/VagasSection"
 import UserTypeSection from "@/components/landing/UserTypeSection"
+import HiringPipelineSection from "@/components/landing/HiringPipelineSection"
 import HowItWorksSection from "@/components/landing/HowItWorksSection"
 import CTASection from "@/components/landing/CTASection"
 import Footer from "@/components/landing/Footer"
@@ -66,6 +67,7 @@ export default function Home() {
                 imageAlt="Entrevista de trabalho entre uma empresa e uma candidata"
                 caption="Seus Próximos Talentos"
             />
+            <HiringPipelineSection />
             <HowItWorksSection />
             <CTASection />
             <Footer />
