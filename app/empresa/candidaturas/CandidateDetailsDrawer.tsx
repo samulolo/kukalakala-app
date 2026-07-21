@@ -18,9 +18,20 @@ interface CandidateDetailsDrawerProps {
     saving: boolean
     // null = candidato ainda não está no pool guardado da empresa
     savedNote?: string | null
+    // true = vista só de perfil (ex: pesquisa de candidatos) — esconde
+    // gestão de estado, entrevista e mensagens, que pertencem à
+    // gestão de uma candidatura concreta em /empresa/candidaturas
+    readOnly?: boolean
 }
 
-export default function CandidateDetailsDrawer({ applicant, onClose, onStatusChange, saving, savedNote = null }: CandidateDetailsDrawerProps) {
+export default function CandidateDetailsDrawer({
+    applicant,
+    onClose,
+    onStatusChange,
+    saving,
+    savedNote = null,
+    readOnly = false
+}: CandidateDetailsDrawerProps) {
     const isOpen = applicant !== null
     const [downloadingCv, setDownloadingCv] = useState(false)
     const [cvError, setCvError] = useState("")
@@ -193,36 +204,42 @@ export default function CandidateDetailsDrawer({ applicant, onClose, onStatusCha
 
                             <SaveToPoolSection candidateId={applicant.candidateId} initialNote={savedNote} />
 
-                            <InterviewScheduler
-                                key={`${applicant.id}-${applicant.interview?.id ?? "none"}-${applicant.interview?.status ?? ""}-${applicant.interview?.scheduledAt ?? ""}`}
-                                applicationId={applicant.id}
-                                interview={applicant.interview}
-                            />
+                            {!readOnly && (
+                                <>
+                                    <InterviewScheduler
+                                        key={`${applicant.id}-${applicant.interview?.id ?? "none"}-${applicant.interview?.status ?? ""}-${applicant.interview?.scheduledAt ?? ""}`}
+                                        applicationId={applicant.id}
+                                        interview={applicant.interview}
+                                    />
 
-                            <div className="mb-2">
-                                <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-1.5">
-                                    <MessageCircle className="w-4 h-4 text-slate-400" strokeWidth={1.75} />
-                                    Mensagens
-                                </h4>
-                                <div className="h-80 border border-slate-200 rounded-xl p-3">
-                                    <MessageThread key={applicant.id} applicationId={applicant.id} />
-                                </div>
+                                    <div className="mb-2">
+                                        <h4 className="text-sm font-semibold text-slate-900 mb-2 flex items-center gap-1.5">
+                                            <MessageCircle className="w-4 h-4 text-slate-400" strokeWidth={1.75} />
+                                            Mensagens
+                                        </h4>
+                                        <div className="h-80 border border-slate-200 rounded-xl p-3">
+                                            <MessageThread key={applicant.id} applicationId={applicant.id} />
+                                        </div>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+
+                        {!readOnly && (
+                            <div className="px-5 py-4 border-t border-slate-200 flex-shrink-0">
+                                <label className="block text-xs font-medium text-slate-500 mb-1.5">Estado da candidatura</label>
+                                <select
+                                    value={applicant.status}
+                                    onChange={(e) => onStatusChange(applicant.id, e.target.value as ApplicationStatus)}
+                                    disabled={saving}
+                                    className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors disabled:opacity-50"
+                                >
+                                    {statusOptions.map((status) => (
+                                        <option key={status} value={status}>{status}</option>
+                                    ))}
+                                </select>
                             </div>
-                        </div>
-
-                        <div className="px-5 py-4 border-t border-slate-200 flex-shrink-0">
-                            <label className="block text-xs font-medium text-slate-500 mb-1.5">Estado da candidatura</label>
-                            <select
-                                value={applicant.status}
-                                onChange={(e) => onStatusChange(applicant.id, e.target.value as ApplicationStatus)}
-                                disabled={saving}
-                                className="w-full px-3.5 py-2.5 rounded-lg border border-slate-200 bg-white text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors disabled:opacity-50"
-                            >
-                                {statusOptions.map((status) => (
-                                    <option key={status} value={status}>{status}</option>
-                                ))}
-                            </select>
-                        </div>
+                        )}
                     </>
                 )}
             </aside>

@@ -50,13 +50,25 @@ export function groupApplicationsByCandidate(applications: CompanyApplicant[]): 
     })
 }
 
-// Relevância simples por palavras-chave: soma pontos consoante o termo
-// pesquisado aparece no cargo pretendido, competências, nível, cargos
-// das vagas a que se candidatou, ou na bio — sem chamadas à IA, para
-// devolver resultado instantâneo. Devolve 0 quando nada bate certo.
-export function candidateRelevance(candidate: CandidateGroup, query: string): number {
+// Peso (em pontos percentuais) do campo mais forte onde um termo
+// pesquisado bate certo — cargo/headline pesa mais que uma menção
+// perdida na bio, por exemplo.
+const FIELD_WEIGHTS = {
+    headline: 100,
+    jobTitle: 90,
+    skills: 75,
+    level: 55,
+    bio: 40
+}
+
+// Pontuação de correspondência à pesquisa, em percentagem (0-100):
+// para cada termo pesquisado usa o peso do campo mais forte onde bateu
+// certo, e a pontuação final é a média entre todos os termos — sem
+// chamadas à IA, para devolver resultado instantâneo. 0 quando nada
+// bate certo (não deve aparecer nos resultados).
+export function searchMatchScore(candidate: CandidateGroup, query: string): number {
     const terms = query.trim().toLowerCase().split(/\s+/).filter(Boolean)
-    if (terms.length === 0) return 1
+    if (terms.length === 0) return 0
 
     const headline = candidate.headline.toLowerCase()
     const bio = candidate.bio.toLowerCase()
@@ -64,15 +76,18 @@ export function candidateRelevance(candidate: CandidateGroup, query: string): nu
     const skills = candidate.skills.map((s) => s.toLowerCase())
     const jobTitles = candidate.applications.map((a) => a.jobTitle.toLowerCase())
 
-    let score = 0
+    let total = 0
     for (const term of terms) {
-        if (headline.includes(term)) score += 5
-        if (skills.some((skill) => skill.includes(term))) score += 4
-        if (jobTitles.some((title) => title.includes(term))) score += 3
-        if (level.includes(term)) score += 2
-        if (bio.includes(term)) score += 1
+        let best = 0
+        if (headline.includes(term)) best = Math.max(best, FIELD_WEIGHTS.headline)
+        if (jobTitles.some((title) => title.includes(term))) best = Math.max(best, FIELD_WEIGHTS.jobTitle)
+        if (skills.some((skill) => skill.includes(term))) best = Math.max(best, FIELD_WEIGHTS.skills)
+        if (level.includes(term)) best = Math.max(best, FIELD_WEIGHTS.level)
+        if (bio.includes(term)) best = Math.max(best, FIELD_WEIGHTS.bio)
+        total += best
     }
-    return score
+
+    return Math.round(total / terms.length)
 }
 
 // Junta quem já se candidatou (tem candidaturas reais, com estado,
@@ -102,25 +117,36 @@ export function mergeCandidatePool(applicants: CandidateGroup[], pool: PoolCandi
     return [...applicants, ...poolOnly]
 }
 
-// Pesquisa e ordena: primeiro por relevância ao termo pesquisado, depois
-// pelo melhor score de compatibilidade de IA já calculado (se existir),
-// e por fim pela candidatura mais recente.
-export function searchCandidates(candidates: CandidateGroup[], query: string): CandidateGroup[] {
+// Abaixo disto a correspondência é fraca demais para valer a pena
+// mostrar — a pessoa pode pesquisar de outra forma para a encontrar.
+export const SEARCH_MATCH_THRESHOLD = 60
+
+export interface ScoredCandidate {
+    candidate: CandidateGroup
+    score: number | null
+}
+
+// Sem pesquisa: devolve tudo (modo "navegar"), mais recente primeiro,
+// sem pontuação (score null). Com pesquisa: pontua cada candidato de
+// 0-100 pela correspondência ao termo, descarta quem fica abaixo do
+// limiar e ordena do maior para o menor score.
+export function searchCandidates(candidates: CandidateGroup[], query: string): ScoredCandidate[] {
     const hasQuery = query.trim().length > 0
 
+    if (!hasQuery) {
+        const sorted = [...candidates].sort((a, b) => {
+            const aDate = a.applications[0]?.createdAt ?? ""
+            const bDate = b.applications[0]?.createdAt ?? ""
+            return bDate.localeCompare(aDate)
+        })
+        return sorted.map((candidate) => ({ candidate, score: null }))
+    }
+
     const scored = candidates
-        .map((candidate) => ({ candidate, relevance: candidateRelevance(candidate, query) }))
-        .filter(({ relevance }) => !hasQuery || relevance > 0)
+        .map((candidate) => ({ candidate, score: searchMatchScore(candidate, query) }))
+        .filter(({ score }) => score >= SEARCH_MATCH_THRESHOLD)
 
-    scored.sort((a, b) => {
-        if (b.relevance !== a.relevance) return b.relevance - a.relevance
-        if ((b.candidate.bestAiScore ?? -1) !== (a.candidate.bestAiScore ?? -1)) {
-            return (b.candidate.bestAiScore ?? -1) - (a.candidate.bestAiScore ?? -1)
-        }
-        const aDate = a.candidate.applications[0]?.createdAt ?? ""
-        const bDate = b.candidate.applications[0]?.createdAt ?? ""
-        return bDate.localeCompare(aDate)
-    })
+    scored.sort((a, b) => (b.score as number) - (a.score as number))
 
-    return scored.map(({ candidate }) => candidate)
+    return scored
 }

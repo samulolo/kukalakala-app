@@ -1,17 +1,17 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, MapPin, Briefcase, Eye, Sparkles, X, Users, BookmarkCheck } from "lucide-react"
+import { Search, MapPin, Briefcase, Eye, X, Users, BookmarkCheck, Trophy, ThumbsUp } from "lucide-react"
 import type { CompanyApplicant } from "@/lib/supabase/company-applications"
-import type { ApplicationStatus } from "@/lib/supabase/applications"
-import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
 import type { PoolCandidate } from "@/lib/supabase/candidate-pool"
 import type { SavedCandidate } from "@/lib/supabase/saved-candidates"
-import { groupApplicationsByCandidate, mergeCandidatePool, searchCandidates, type CandidateGroup } from "@/lib/candidate-search"
-import { changeApplicationStatus } from "../candidaturas/actions"
-import { getCompanyApplicationAiFit } from "@/lib/actions/ai-fit"
+import {
+    groupApplicationsByCandidate,
+    mergeCandidatePool,
+    searchCandidates,
+    type CandidateGroup
+} from "@/lib/candidate-search"
 import CandidateDetailsDrawer from "../candidaturas/CandidateDetailsDrawer"
-import AiFitDrawer from "../candidaturas/AiFitDrawer"
 import CandidatePreviewDrawer from "./CandidatePreviewDrawer"
 
 interface CandidatosSearchClientProps {
@@ -24,11 +24,6 @@ export default function CandidatosSearchClient({ applications, pool, saved }: Ca
     const [query, setQuery] = useState("")
     const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null)
     const [previewCandidateId, setPreviewCandidateId] = useState<string | null>(null)
-    const [savingId, setSavingId] = useState<string | null>(null)
-    const [aiSelectedId, setAiSelectedId] = useState<string | null>(null)
-    const [aiLoading, setAiLoading] = useState(false)
-    const [aiError, setAiError] = useState<string | null>(null)
-    const [aiResult, setAiResult] = useState<AiFitAnalysis | null>(null)
 
     const candidates = useMemo(
         () => mergeCandidatePool(groupApplicationsByCandidate(applications), pool),
@@ -37,35 +32,21 @@ export default function CandidatosSearchClient({ applications, pool, saved }: Ca
     const results = useMemo(() => searchCandidates(candidates, query), [candidates, query])
     const savedNoteById = useMemo(() => new Map(saved.map((s) => [s.candidateId, s.note])), [saved])
 
+    const hasQuery = query.trim().length > 0
+    const best = hasQuery ? results.filter((r) => (r.score ?? 0) > 80) : []
+    const worthConsidering = hasQuery ? results.filter((r) => (r.score ?? 0) >= 60 && (r.score ?? 0) <= 80) : []
+
     const selectedApplicant = applications.find((a) => a.id === selectedApplicationId) ?? null
-    const aiSelectedApplicant = applications.find((a) => a.id === aiSelectedId) ?? null
     const previewCandidate = candidates.find((c) => c.candidateId === previewCandidateId) ?? null
     const selectedSavedNote = selectedApplicant ? savedNoteById.get(selectedApplicant.candidateId) ?? null : null
     const previewSavedNote = previewCandidate ? savedNoteById.get(previewCandidate.candidateId) ?? null : null
 
-    const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {
-        setSavingId(applicationId)
-        await changeApplicationStatus(applicationId, status)
-        setSavingId(null)
-    }
-
-    const handleOpenAiFit = async (applicationId: string) => {
-        setAiSelectedId(applicationId)
-        setAiLoading(true)
-        setAiError(null)
-        setAiResult(null)
-
-        try {
-            const { result, error } = await getCompanyApplicationAiFit(applicationId)
-            if (error) {
-                setAiError(error)
-            } else {
-                setAiResult(result)
-            }
-        } catch {
-            setAiError("Não foi possível gerar a análise, tenta novamente.")
-        } finally {
-            setAiLoading(false)
+    const openProfile = (candidate: CandidateGroup) => {
+        const primary = candidate.applications[0]
+        if (primary) {
+            setSelectedApplicationId(primary.id)
+        } else {
+            setPreviewCandidateId(candidate.candidateId)
         }
     }
 
@@ -92,50 +73,75 @@ export default function CandidatosSearchClient({ applications, pool, saved }: Ca
                 )}
             </div>
 
-            <p className="text-xs text-slate-400 font-light mb-4">
-                {results.length} {results.length === 1 ? "candidato encontrado" : "candidatos encontrados"} — inclui
-                quem já se candidatou às tuas vagas e o banco de talentos pesquisável
-            </p>
+            {hasQuery ? (
+                <div className="space-y-8">
+                    <p className="text-sm text-slate-500 font-light -mt-1">
+                        <span className="font-semibold text-slate-900">{best.length + worthConsidering.length}</span>{" "}
+                        {best.length + worthConsidering.length === 1 ? "candidato encontrado" : "candidatos encontrados"}
+                    </p>
 
-            <div className="p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
-                {results.length > 0 ? (
-                    <ul className="divide-y divide-slate-100 px-2">
-                        {results.map((candidate) => (
-                            <CandidateRow
-                                key={candidate.candidateId}
-                                candidate={candidate}
-                                savingId={savingId}
-                                isSaved={savedNoteById.has(candidate.candidateId)}
-                                onOpenDetails={setSelectedApplicationId}
-                                onOpenPreview={setPreviewCandidateId}
-                                onOpenAiFit={handleOpenAiFit}
-                                onStatusChange={handleStatusChange}
-                            />
-                        ))}
-                    </ul>
-                ) : (
-                    <div className="text-center py-16">
-                        <p className="text-slate-600 font-light text-sm">
-                            {query ? "Nenhum candidato corresponde à pesquisa" : "Ainda não há candidatos para mostrar"}
-                        </p>
-                    </div>
-                )}
-            </div>
+                    <ResultSection
+                        title="Os melhores"
+                        description="Correspondência forte com a pesquisa (score acima de 80)"
+                        icon={Trophy}
+                        iconClass="text-amber-600 bg-amber-50"
+                        items={best}
+                        savedNoteById={savedNoteById}
+                        onOpenProfile={openProfile}
+                    />
+
+                    <ResultSection
+                        title="Vale considerar"
+                        description="Correspondência razoável (score entre 60 e 80)"
+                        icon={ThumbsUp}
+                        iconClass="text-blue-700 bg-blue-50"
+                        items={worthConsidering}
+                        savedNoteById={savedNoteById}
+                        onOpenProfile={openProfile}
+                    />
+
+                    {best.length === 0 && worthConsidering.length === 0 && (
+                        <div className="p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                            <div className="text-center py-16">
+                                <p className="text-slate-600 font-light text-sm">Nenhum candidato corresponde à pesquisa</p>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            ) : (
+                <div className="p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                    <p className="text-xs text-slate-400 font-light px-3 pt-2 pb-3">
+                        {results.length} {results.length === 1 ? "candidato disponível" : "candidatos disponíveis"} — inclui
+                        quem já se candidatou às tuas vagas e o banco de talentos pesquisável. Pesquisa por profissão,
+                        competência ou nível para ordenar por score.
+                    </p>
+                    {results.length > 0 ? (
+                        <ul className="divide-y divide-slate-100 px-2">
+                            {results.map(({ candidate }) => (
+                                <CandidateRow
+                                    key={candidate.candidateId}
+                                    candidate={candidate}
+                                    score={null}
+                                    isSaved={savedNoteById.has(candidate.candidateId)}
+                                    onOpenProfile={openProfile}
+                                />
+                            ))}
+                        </ul>
+                    ) : (
+                        <div className="text-center py-16">
+                            <p className="text-slate-600 font-light text-sm">Ainda não há candidatos para mostrar</p>
+                        </div>
+                    )}
+                </div>
+            )}
 
             <CandidateDetailsDrawer
                 applicant={selectedApplicant}
                 onClose={() => setSelectedApplicationId(null)}
-                onStatusChange={handleStatusChange}
-                saving={savingId === selectedApplicationId}
+                onStatusChange={() => {}}
+                saving={false}
                 savedNote={selectedSavedNote}
-            />
-
-            <AiFitDrawer
-                applicant={aiSelectedApplicant}
-                onClose={() => setAiSelectedId(null)}
-                result={aiResult}
-                loading={aiLoading}
-                error={aiError}
+                readOnly
             />
 
             <CandidatePreviewDrawer
@@ -147,27 +153,66 @@ export default function CandidatosSearchClient({ applications, pool, saved }: Ca
     )
 }
 
-const statusOptions: ApplicationStatus[] = ["Em análise", "Entrevista", "Aprovado", "Rejeitado"]
+function ResultSection({
+    title,
+    description,
+    icon: Icon,
+    iconClass,
+    items,
+    savedNoteById,
+    onOpenProfile
+}: {
+    title: string
+    description: string
+    icon: typeof Trophy
+    iconClass: string
+    items: { candidate: CandidateGroup; score: number | null }[]
+    savedNoteById: Map<string, string>
+    onOpenProfile: (candidate: CandidateGroup) => void
+}) {
+    if (items.length === 0) return null
 
-const selectClass =
-    "px-3 py-2 rounded-lg border border-slate-200 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition-colors"
+    return (
+        <div>
+            <div className="flex items-center gap-2.5 mb-3">
+                <span className={`inline-flex items-center justify-center w-8 h-8 rounded-lg ${iconClass}`}>
+                    <Icon className="w-4 h-4" strokeWidth={1.75} />
+                </span>
+                <div>
+                    <h2 className="text-sm font-semibold text-slate-900">
+                        {title} <span className="text-slate-400 font-normal">({items.length})</span>
+                    </h2>
+                    <p className="text-xs text-slate-400 font-light">{description}</p>
+                </div>
+            </div>
+
+            <div className="p-2 sm:p-4 rounded-2xl border border-slate-200 bg-white shadow-sm">
+                <ul className="divide-y divide-slate-100 px-2">
+                    {items.map(({ candidate, score }) => (
+                        <CandidateRow
+                            key={candidate.candidateId}
+                            candidate={candidate}
+                            score={score}
+                            isSaved={savedNoteById.has(candidate.candidateId)}
+                            onOpenProfile={onOpenProfile}
+                        />
+                    ))}
+                </ul>
+            </div>
+        </div>
+    )
+}
 
 function CandidateRow({
     candidate,
-    savingId,
+    score,
     isSaved,
-    onOpenDetails,
-    onOpenPreview,
-    onOpenAiFit,
-    onStatusChange
+    onOpenProfile
 }: {
     candidate: CandidateGroup
-    savingId: string | null
+    score: number | null
     isSaved: boolean
-    onOpenDetails: (applicationId: string) => void
-    onOpenPreview: (candidateId: string) => void
-    onOpenAiFit: (applicationId: string) => void
-    onStatusChange: (applicationId: string, status: ApplicationStatus) => void
+    onOpenProfile: (candidate: CandidateGroup) => void
 }) {
     const primary = candidate.applications[0] ?? null
 
@@ -180,16 +225,15 @@ function CandidateRow({
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-medium text-slate-900 truncate">{candidate.name}</p>
+                    {score !== null && (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-900 text-white text-xs font-semibold flex-shrink-0">
+                            score {score}
+                        </span>
+                    )}
                     {isSaved && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium flex-shrink-0">
                             <BookmarkCheck className="w-3 h-3" strokeWidth={1.75} />
                             No pool
-                        </span>
-                    )}
-                    {candidate.bestAiScore !== null && (
-                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium flex-shrink-0">
-                            <Sparkles className="w-3 h-3" strokeWidth={1.75} />
-                            {candidate.bestAiScore}% compatibilidade
                         </span>
                     )}
                     {!primary && (
@@ -216,47 +260,14 @@ function CandidateRow({
                 )}
             </div>
 
-            {primary ? (
-                <>
-                    <button
-                        type="button"
-                        onClick={() => onOpenDetails(primary.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
-                    >
-                        <Eye className="w-4 h-4" strokeWidth={1.75} />
-                        Ver detalhes
-                    </button>
-
-                    <button
-                        type="button"
-                        onClick={() => onOpenAiFit(primary.id)}
-                        className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-slate-600 hover:bg-slate-100 transition-colors flex-shrink-0"
-                    >
-                        <Sparkles className="w-4 h-4" strokeWidth={1.75} />
-                        Análise IA
-                    </button>
-
-                    <select
-                        value={primary.status}
-                        onChange={(e) => onStatusChange(primary.id, e.target.value as ApplicationStatus)}
-                        disabled={savingId === primary.id}
-                        className={`${selectClass} flex-shrink-0 disabled:opacity-50`}
-                    >
-                        {statusOptions.map((status) => (
-                            <option key={status} value={status}>{status}</option>
-                        ))}
-                    </select>
-                </>
-            ) : (
-                <button
-                    type="button"
-                    onClick={() => onOpenPreview(candidate.candidateId)}
-                    className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
-                >
-                    <Eye className="w-4 h-4" strokeWidth={1.75} />
-                    Ver perfil
-                </button>
-            )}
+            <button
+                type="button"
+                onClick={() => onOpenProfile(candidate)}
+                className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-sm font-medium text-blue-700 hover:bg-blue-50 transition-colors flex-shrink-0"
+            >
+                <Eye className="w-4 h-4" strokeWidth={1.75} />
+                Ver perfil
+            </button>
         </li>
     )
 }
