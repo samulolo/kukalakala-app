@@ -1,10 +1,11 @@
-import { resend, EMAIL_FROM } from "./resend"
+import { resend, EMAIL_FROM, CONTACT_EMAIL } from "./resend"
 import ApplicationReceivedEmail from "@/emails/ApplicationReceivedEmail"
 import StatusChangedEmail from "@/emails/StatusChangedEmail"
 import NewMessageEmail from "@/emails/NewMessageEmail"
 import JobAlertEmail from "@/emails/JobAlertEmail"
 import InterviewScheduledEmail, { type InterviewNotifyAction } from "@/emails/InterviewScheduledEmail"
 import InterviewResponseEmail from "@/emails/InterviewResponseEmail"
+import ContactMessageEmail from "@/emails/ContactMessageEmail"
 
 // Todas as funções abaixo são "best effort": nunca lançam erro para
 // não bloquear a ação principal do utilizador (candidatar-se, mudar
@@ -170,6 +171,39 @@ export async function sendInterviewScheduledEmail(params: {
         })
     } catch (err) {
         console.error("Erro ao enviar email de entrevista agendada: ", err)
+    }
+}
+
+export async function sendContactMessageEmail(params: {
+    name: string
+    email: string
+    subject: string
+    message: string
+}): Promise<{ error: string | null }> {
+    if (!canSendEmail()) return { error: "Envio de email não está configurado" }
+    try {
+        const { error } = await resend.emails.send({
+            from: EMAIL_FROM,
+            to: CONTACT_EMAIL,
+            replyTo: params.email,
+            subject: `[Contacto] ${params.subject}`,
+            react: (
+                <ContactMessageEmail
+                    name={params.name}
+                    email={params.email}
+                    subject={params.subject}
+                    message={params.message}
+                />
+            )
+        })
+        if (error) {
+            console.error("Erro ao enviar email de contacto: ", error)
+            return { error: "Não foi possível enviar a mensagem, tenta novamente" }
+        }
+        return { error: null }
+    } catch (err) {
+        console.error("Erro ao enviar email de contacto: ", err)
+        return { error: "Não foi possível enviar a mensagem, tenta novamente" }
     }
 }
 

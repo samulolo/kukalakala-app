@@ -11,4 +11,8 @@ export const resend = new Resend(process.env.RESEND_API_KEY)
 // reais, verifica um domínio no Resend e define RESEND_FROM_EMAIL.
 export const EMAIL_FROM = process.env.RESEND_FROM_EMAIL || "Kukalakala <onboarding@resend.dev>"
 
+// Caixa real (Zoho Mail) para onde vão as mensagens do formulário de
+// contacto público — alguém lê e responde a partir daqui.
+export const CONTACT_EMAIL = process.env.CONTACT_EMAIL || "contato@kukalakala.com"
+
 export const APP_URL = process.env.APP_URL || "http://localhost:3000"
