@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { getVerifiedUser } from "@/supabase/server"
 import { getMyCompany, upsertMyCompany } from "@/lib/supabase/company"
-import { getMyNotifications, getUnreadNotificationCount } from "@/lib/supabase/notifications"
 import Sidebar from "@/components/empresa/Sidebar"
 import Topbar from "@/components/empresa/Topbar"
 import MobileTabBar from "@/components/empresa/MobileTabBar"
@@ -46,19 +45,16 @@ export default async function EmpresaLayout({
 
     const companyName = company?.companyName || "Empresa"
     const email = user.email ?? ""
-    const [notifications, unreadCount] = await Promise.all([getMyNotifications(), getUnreadNotificationCount()])
+    // Notificações ficam de fora: o NotificationBell busca-as no
+    // próprio browser (ver componente), para não acrescentar mais
+    // duas queries ao caminho crítico de todas as navegações.
 
     return (
         <ToastProvider>
             <div className="min-h-screen bg-slate-50">
                 <Sidebar companyName={companyName} email={email} />
                 <div className="md:pl-64 flex flex-col min-h-screen">
-                    <Topbar
-                        companyName={companyName}
-                        userId={user.id}
-                        initialNotifications={notifications}
-                        initialUnreadCount={unreadCount}
-                    />
+                    <Topbar companyName={companyName} userId={user.id} />
                     <main className="flex-1 px-6 py-8 pb-20 md:pb-8">
                         <div className="max-w-5xl mx-auto">
                             {company && (

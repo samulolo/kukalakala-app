@@ -87,7 +87,21 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
+    // Antes disto corria em TODAS as rotas (menos estáticos), incluindo
+    // páginas totalmente públicas e sem nada de auth-aware (landing,
+    // termos, privacidade, sobre, contacto) — o que significava um
+    // pedido de rede extra a validar/renovar a sessão em CADA navegação
+    // a essas páginas, mesmo para quem nem sequer tem sessão. Reduzido
+    // só às áreas que precisam mesmo de proteção por papel ou de saber
+    // o estado de sessão (login/registo redirecionam se já autenticado;
+    // /vagas mostra "já candidatado"/favoritos consoante quem visita).
     matcher: [
-        "/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"
+        "/dashboard/:path*",
+        "/onboarding/:path*",
+        "/empresa/:path*",
+        "/admin/:path*",
+        "/auth/login",
+        "/auth/register",
+        "/vagas/:path*"
     ]
 }

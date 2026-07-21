@@ -5,16 +5,13 @@ import { usePathname } from "next/navigation"
 import { getActiveNavItem } from "./nav-items"
 import LogoutButton from "@/components/dashboard/LogoutButton"
 import NotificationBell from "@/components/dashboard/NotificationBell"
-import type { Notification } from "@/lib/supabase/notifications"
 
 interface TopbarProps {
     companyName: string
     userId: string
-    initialNotifications: Notification[]
-    initialUnreadCount: number
 }
 
-export default function Topbar({ companyName, userId, initialNotifications, initialUnreadCount }: TopbarProps) {
+export default function Topbar({ companyName, userId }: TopbarProps) {
     const pathname = usePathname()
     const active = getActiveNavItem(pathname)
     const initials = companyName.slice(0, 2).toUpperCase()
@@ -41,11 +38,7 @@ export default function Topbar({ companyName, userId, initialNotifications, init
                 </div>
 
                 <div className="flex items-center gap-3 flex-shrink-0">
-                    <NotificationBell
-                        userId={userId}
-                        initialNotifications={initialNotifications}
-                        initialUnreadCount={initialUnreadCount}
-                    />
+                    <NotificationBell userId={userId} />
 
                     <div className="hidden sm:flex items-center gap-2.5">
                         <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-700 text-white text-xs font-semibold">

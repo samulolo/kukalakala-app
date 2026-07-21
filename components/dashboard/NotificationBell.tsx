@@ -43,19 +43,48 @@ function rowToNotification(row: NotificationRow): Notification {
 
 interface NotificationBellProps {
     userId: string
-    initialNotifications: Notification[]
-    initialUnreadCount: number
 }
 
-// Sino de notificações partilhado pelos dois painéis. Recebe o
-// estado inicial já carregado no servidor e mantém-se atualizado
-// em tempo real via Supabase Realtime.
-export default function NotificationBell({ userId, initialNotifications, initialUnreadCount }: NotificationBellProps) {
+// Sino de notificações partilhado pelos dois painéis. Busca o estado
+// inicial no próprio browser (em vez de vir bloqueante do servidor,
+// atrasando toda a navegação em app/dashboard/layout.tsx e
+// app/empresa/layout.tsx com mais duas queries em cada troca de rota)
+// e mantém-se atualizado em tempo real via Supabase Realtime.
+export default function NotificationBell({ userId }: NotificationBellProps) {
     const router = useRouter()
-    const [notifications, setNotifications] = useState<Notification[]>(initialNotifications)
-    const [unreadCount, setUnreadCount] = useState(initialUnreadCount)
+    const [notifications, setNotifications] = useState<Notification[]>([])
+    const [unreadCount, setUnreadCount] = useState(0)
     const [open, setOpen] = useState(false)
     const containerRef = useRef<HTMLDivElement>(null)
+
+    useEffect(() => {
+        let active = true
+
+        const load = async () => {
+            const [{ data: notificationRows }, { count }] = await Promise.all([
+                supabase
+                    .from("notifications")
+                    .select("id, type, title, body, link, read_at, created_at")
+                    .eq("recipient_id", userId)
+                    .order("created_at", { ascending: false })
+                    .limit(20),
+                supabase
+                    .from("notifications")
+                    .select("id", { count: "exact", head: true })
+                    .eq("recipient_id", userId)
+                    .is("read_at", null)
+            ])
+
+            if (!active) return
+            setNotifications(((notificationRows ?? []) as NotificationRow[]).map(rowToNotification))
+            setUnreadCount(count ?? 0)
+        }
+        load()
+
+        return () => {
+            active = false
+        }
+    }, [userId])
 
     useEffect(() => {
         const channel = supabase

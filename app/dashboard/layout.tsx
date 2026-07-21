@@ -4,7 +4,6 @@ import { redirect } from "next/navigation"
 import { getVerifiedUser } from "@/supabase/server"
 import { getSavedJobs } from "@/lib/supabase/saved-jobs"
 import { getAppliedJobIds } from "@/lib/supabase/applications"
-import { getMyNotifications, getUnreadNotificationCount } from "@/lib/supabase/notifications"
 import Sidebar from "@/components/dashboard/Sidebar"
 import Topbar from "@/components/dashboard/Topbar"
 import MobileTabBar from "@/components/dashboard/MobileTabBar"
@@ -28,11 +27,13 @@ export default async function DashboardLayout({
     }
 
     const email = user.email ?? ""
-    const [savedJobs, appliedJobIds, notifications, unreadCount] = await Promise.all([
+    // Notificações ficam de fora deste Promise.all de propósito: o
+    // NotificationBell busca-as no próprio browser (ver componente),
+    // para não acrescentar mais duas queries ao caminho crítico de
+    // TODAS as navegações dentro do painel.
+    const [savedJobs, appliedJobIds] = await Promise.all([
         getSavedJobs(),
-        getAppliedJobIds(),
-        getMyNotifications(),
-        getUnreadNotificationCount()
+        getAppliedJobIds()
     ])
 
     return (
@@ -42,12 +43,7 @@ export default async function DashboardLayout({
                     <div className="min-h-screen bg-slate-50">
                         <Sidebar email={email} />
                         <div className="md:pl-64 flex flex-col min-h-screen">
-                            <Topbar
-                            email={email}
-                            userId={user.id}
-                            initialNotifications={notifications}
-                            initialUnreadCount={unreadCount}
-                        />
+                            <Topbar email={email} userId={user.id} />
                             <main className="flex-1 px-6 py-8 pb-20 md:pb-8">
                                 <div className="max-w-5xl mx-auto">
                                     {children}

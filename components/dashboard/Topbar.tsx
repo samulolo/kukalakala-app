@@ -7,16 +7,13 @@ import { getActiveNavItem } from "./nav-items"
 import { useFavoritesDrawer } from "./FavoritesDrawerContext"
 import LogoutButton from "./LogoutButton"
 import NotificationBell from "./NotificationBell"
-import type { Notification } from "@/lib/supabase/notifications"
 
 interface TopbarProps {
     email: string
     userId: string
-    initialNotifications: Notification[]
-    initialUnreadCount: number
 }
 
-export default function Topbar({ email, userId, initialNotifications, initialUnreadCount }: TopbarProps) {
+export default function Topbar({ email, userId }: TopbarProps) {
     const pathname = usePathname()
     const active = getActiveNavItem(pathname)
     const initials = email.slice(0, 2).toUpperCase()
@@ -58,11 +55,7 @@ export default function Topbar({ email, userId, initialNotifications, initialUnr
                         <Heart className="w-4.5 h-4.5" strokeWidth={1.75} fill={isOpen ? "currentColor" : "none"} />
                     </button>
 
-                    <NotificationBell
-                        userId={userId}
-                        initialNotifications={initialNotifications}
-                        initialUnreadCount={initialUnreadCount}
-                    />
+                    <NotificationBell userId={userId} />
 
                     <div className="hidden sm:flex items-center gap-2.5">
                         <div className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-blue-700 text-white text-xs font-semibold">
