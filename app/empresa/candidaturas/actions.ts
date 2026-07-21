@@ -10,6 +10,7 @@ export async function changeApplicationStatus(applicationId: string, status: App
     const result = await updateApplicationStatus(applicationId, status)
     if (!result.error) {
         revalidatePath("/empresa/candidaturas")
+        revalidatePath("/empresa/candidatos")
         revalidatePath("/empresa")
     }
     return result
