@@ -7,6 +7,7 @@ import type { ApplicationStatus } from "@/lib/supabase/applications"
 import MessageThread from "@/components/dashboard/MessageThread"
 import { getCvSignedUrl } from "@/lib/actions/cv"
 import InterviewScheduler from "./InterviewScheduler"
+import SaveToPoolSection from "../candidatos/SaveToPoolSection"
 
 const statusOptions: ApplicationStatus[] = ["Em análise", "Entrevista", "Aprovado", "Rejeitado"]
 
@@ -15,9 +16,11 @@ interface CandidateDetailsDrawerProps {
     onClose: () => void
     onStatusChange: (applicationId: string, status: ApplicationStatus) => void
     saving: boolean
+    // null = candidato ainda não está no pool guardado da empresa
+    savedNote?: string | null
 }
 
-export default function CandidateDetailsDrawer({ applicant, onClose, onStatusChange, saving }: CandidateDetailsDrawerProps) {
+export default function CandidateDetailsDrawer({ applicant, onClose, onStatusChange, saving, savedNote = null }: CandidateDetailsDrawerProps) {
     const isOpen = applicant !== null
     const [downloadingCv, setDownloadingCv] = useState(false)
     const [cvError, setCvError] = useState("")
@@ -187,6 +190,8 @@ export default function CandidateDetailsDrawer({ applicant, onClose, onStatusCha
                                 )}
                                 {cvError && <p className="text-xs text-red-600 mt-1.5">{cvError}</p>}
                             </div>
+
+                            <SaveToPoolSection candidateId={applicant.candidateId} initialNote={savedNote} />
 
                             <InterviewScheduler
                                 key={`${applicant.id}-${applicant.interview?.id ?? "none"}-${applicant.interview?.status ?? ""}-${applicant.interview?.scheduledAt ?? ""}`}

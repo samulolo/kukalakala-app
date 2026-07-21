@@ -6,6 +6,7 @@ import { MapPin, Briefcase, Eye, Sparkles } from "lucide-react"
 import type { CompanyApplicant } from "@/lib/supabase/company-applications"
 import type { ApplicationStatus } from "@/lib/supabase/applications"
 import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
+import type { SavedCandidate } from "@/lib/supabase/saved-candidates"
 import { changeApplicationStatus } from "./actions"
 import { getCompanyApplicationAiFit } from "@/lib/actions/ai-fit"
 import CandidateDetailsDrawer from "./CandidateDetailsDrawer"
@@ -19,9 +20,10 @@ interface CandidaturasClientProps {
     // notificação, ex. ?conversa=ID) — carregada à parte porque pode não
     // estar entre as candidaturas visíveis com os filtros atuais.
     openApplicant?: CompanyApplicant | null
+    saved: SavedCandidate[]
 }
 
-export default function CandidaturasClient({ applications, openApplicant }: CandidaturasClientProps) {
+export default function CandidaturasClient({ applications, openApplicant, saved }: CandidaturasClientProps) {
     const router = useRouter()
     const pathname = usePathname()
     const [jobFilter, setJobFilter] = useState("all")
@@ -73,6 +75,9 @@ export default function CandidaturasClient({ applications, openApplicant }: Cand
     const selectedApplicant =
         applications.find((a) => a.id === selectedId) ?? (openApplicant?.id === selectedId ? openApplicant : null)
     const aiSelectedApplicant = applications.find((a) => a.id === aiSelectedId) ?? null
+
+    const savedNoteById = useMemo(() => new Map(saved.map((s) => [s.candidateId, s.note])), [saved])
+    const selectedSavedNote = selectedApplicant ? savedNoteById.get(selectedApplicant.candidateId) ?? null : null
 
     const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {
         setSavingId(applicationId)
@@ -203,6 +208,7 @@ export default function CandidaturasClient({ applications, openApplicant }: Cand
                 onClose={() => setSelectedId(null)}
                 onStatusChange={handleStatusChange}
                 saving={savingId === selectedId}
+                savedNote={selectedSavedNote}
             />
 
             <AiFitDrawer

@@ -1,4 +1,4 @@
-import { Home, Briefcase, Users, Search, Building2, BarChart3, FileText, type LucideIcon } from "lucide-react"
+import { Home, Briefcase, Users, Search, Bookmark, Building2, BarChart3, FileText, type LucideIcon } from "lucide-react"
 
 export interface NavItem {
     label: string
@@ -41,6 +41,14 @@ export const navItems: NavItem[] = [
         eyebrow: "Recrutamento",
         title: "Pesquisar candidatos",
         subtitle: "Encontra, entre quem já se candidatou, quem melhor encaixa numa vaga"
+    },
+    {
+        label: "Guardados",
+        href: "/empresa/candidatos/guardados",
+        icon: Bookmark,
+        eyebrow: "Recrutamento",
+        title: "Candidatos guardados",
+        subtitle: "Quem guardaste para reavaliar no futuro, com as tuas notas"
     },
     {
         label: "Métricas",

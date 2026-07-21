@@ -1,11 +1,12 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search, MapPin, Briefcase, Eye, Sparkles, X, Users } from "lucide-react"
+import { Search, MapPin, Briefcase, Eye, Sparkles, X, Users, BookmarkCheck } from "lucide-react"
 import type { CompanyApplicant } from "@/lib/supabase/company-applications"
 import type { ApplicationStatus } from "@/lib/supabase/applications"
 import type { AiFitAnalysis } from "@/lib/ai/analyze-fit"
 import type { PoolCandidate } from "@/lib/supabase/candidate-pool"
+import type { SavedCandidate } from "@/lib/supabase/saved-candidates"
 import { groupApplicationsByCandidate, mergeCandidatePool, searchCandidates, type CandidateGroup } from "@/lib/candidate-search"
 import { changeApplicationStatus } from "../candidaturas/actions"
 import { getCompanyApplicationAiFit } from "@/lib/actions/ai-fit"
@@ -16,9 +17,10 @@ import CandidatePreviewDrawer from "./CandidatePreviewDrawer"
 interface CandidatosSearchClientProps {
     applications: CompanyApplicant[]
     pool: PoolCandidate[]
+    saved: SavedCandidate[]
 }
 
-export default function CandidatosSearchClient({ applications, pool }: CandidatosSearchClientProps) {
+export default function CandidatosSearchClient({ applications, pool, saved }: CandidatosSearchClientProps) {
     const [query, setQuery] = useState("")
     const [selectedApplicationId, setSelectedApplicationId] = useState<string | null>(null)
     const [previewCandidateId, setPreviewCandidateId] = useState<string | null>(null)
@@ -33,10 +35,13 @@ export default function CandidatosSearchClient({ applications, pool }: Candidato
         [applications, pool]
     )
     const results = useMemo(() => searchCandidates(candidates, query), [candidates, query])
+    const savedNoteById = useMemo(() => new Map(saved.map((s) => [s.candidateId, s.note])), [saved])
 
     const selectedApplicant = applications.find((a) => a.id === selectedApplicationId) ?? null
     const aiSelectedApplicant = applications.find((a) => a.id === aiSelectedId) ?? null
     const previewCandidate = candidates.find((c) => c.candidateId === previewCandidateId) ?? null
+    const selectedSavedNote = selectedApplicant ? savedNoteById.get(selectedApplicant.candidateId) ?? null : null
+    const previewSavedNote = previewCandidate ? savedNoteById.get(previewCandidate.candidateId) ?? null : null
 
     const handleStatusChange = async (applicationId: string, status: ApplicationStatus) => {
         setSavingId(applicationId)
@@ -100,6 +105,7 @@ export default function CandidatosSearchClient({ applications, pool }: Candidato
                                 key={candidate.candidateId}
                                 candidate={candidate}
                                 savingId={savingId}
+                                isSaved={savedNoteById.has(candidate.candidateId)}
                                 onOpenDetails={setSelectedApplicationId}
                                 onOpenPreview={setPreviewCandidateId}
                                 onOpenAiFit={handleOpenAiFit}
@@ -121,6 +127,7 @@ export default function CandidatosSearchClient({ applications, pool }: Candidato
                 onClose={() => setSelectedApplicationId(null)}
                 onStatusChange={handleStatusChange}
                 saving={savingId === selectedApplicationId}
+                savedNote={selectedSavedNote}
             />
 
             <AiFitDrawer
@@ -131,7 +138,11 @@ export default function CandidatosSearchClient({ applications, pool }: Candidato
                 error={aiError}
             />
 
-            <CandidatePreviewDrawer candidate={previewCandidate} onClose={() => setPreviewCandidateId(null)} />
+            <CandidatePreviewDrawer
+                candidate={previewCandidate}
+                onClose={() => setPreviewCandidateId(null)}
+                savedNote={previewSavedNote}
+            />
         </>
     )
 }
@@ -144,6 +155,7 @@ const selectClass =
 function CandidateRow({
     candidate,
     savingId,
+    isSaved,
     onOpenDetails,
     onOpenPreview,
     onOpenAiFit,
@@ -151,6 +163,7 @@ function CandidateRow({
 }: {
     candidate: CandidateGroup
     savingId: string | null
+    isSaved: boolean
     onOpenDetails: (applicationId: string) => void
     onOpenPreview: (candidateId: string) => void
     onOpenAiFit: (applicationId: string) => void
@@ -167,6 +180,12 @@ function CandidateRow({
             <div className="min-w-0 flex-1">
                 <div className="flex flex-wrap items-center gap-2">
                     <p className="text-sm font-medium text-slate-900 truncate">{candidate.name}</p>
+                    {isSaved && (
+                        <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-50 text-blue-700 text-xs font-medium flex-shrink-0">
+                            <BookmarkCheck className="w-3 h-3" strokeWidth={1.75} />
+                            No pool
+                        </span>
+                    )}
                     {candidate.bestAiScore !== null && (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-medium flex-shrink-0">
                             <Sparkles className="w-3 h-3" strokeWidth={1.75} />

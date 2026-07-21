@@ -4,17 +4,20 @@ import { useState } from "react"
 import { X, MapPin, Phone, BadgeCheck, FileText, Download, Loader2, Search } from "lucide-react"
 import type { CandidateGroup } from "@/lib/candidate-search"
 import { getCvSignedUrl } from "@/lib/actions/cv"
+import SaveToPoolSection from "./SaveToPoolSection"
 
 interface CandidatePreviewDrawerProps {
     candidate: CandidateGroup | null
     onClose: () => void
+    // null = candidato ainda não está no pool guardado da empresa
+    savedNote?: string | null
 }
 
 // Perfil só-leitura para candidatos do banco de talentos (optaram por
 // ficar pesquisáveis, mas nunca se candidataram a nenhuma vaga desta
 // empresa) — sem estado de candidatura, mensagens ou entrevista,
 // porque não existe nenhuma candidatura à qual ligar essas ações.
-export default function CandidatePreviewDrawer({ candidate, onClose }: CandidatePreviewDrawerProps) {
+export default function CandidatePreviewDrawer({ candidate, onClose, savedNote = null }: CandidatePreviewDrawerProps) {
     const isOpen = candidate !== null
     const [downloadingCv, setDownloadingCv] = useState(false)
     const [cvError, setCvError] = useState("")
@@ -170,6 +173,10 @@ export default function CandidatePreviewDrawer({ candidate, onClose }: Candidate
                                 <p className="text-sm text-slate-400 font-light">O candidato ainda não carregou um CV</p>
                             )}
                             {cvError && <p className="text-xs text-red-600 mt-1.5">{cvError}</p>}
+                        </div>
+
+                        <div className="mt-6">
+                            <SaveToPoolSection candidateId={candidate.candidateId} initialNote={savedNote} />
                         </div>
                     </div>
                 )}
