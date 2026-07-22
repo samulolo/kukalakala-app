@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useSyncExternalStore } from "react"
+import { createPortal } from "react-dom"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { Menu, X, ArrowLeft, ChevronRight } from "lucide-react"
@@ -11,6 +12,15 @@ interface MobileNavDrawerProps {
     email: string
 }
 
+// "Já estamos no browser?" sem efeito nem setState — useSyncExternalStore
+// devolve o snapshot do servidor (false) no render inicial e no do
+// browser antes da hidratação (para baterem certo) e só passa a true
+// depois disso, sem nunca precisar de um useEffect a mudar estado.
+const subscribeNever = () => () => {}
+function useIsMounted(): boolean {
+    return useSyncExternalStore(subscribeNever, () => true, () => false)
+}
+
 // Com 8 itens no menu, a antiga barra fixa no fundo (um item por
 // coluna) ficava demasiado apertada em ecrãs pequenos. Em vez disso,
 // um único botão abre este menu de lado — o mesmo conteúdo da Sidebar
@@ -19,18 +29,16 @@ export default function MobileNavDrawer({ companyName, email }: MobileNavDrawerP
     const pathname = usePathname()
     const [open, setOpen] = useState(false)
     const initials = companyName.slice(0, 2).toUpperCase()
+    // O botão fica dentro do <header> do Topbar, que tem backdrop-blur
+    // aplicado — e um ancestral com backdrop-filter/filter cria um novo
+    // containing block para descendentes "fixed", pelo que o painel e o
+    // fundo ficavam presos à faixa do cabeçalho em vez de cobrirem o
+    // ecrã todo (via ficava "opaco" e sem opções visíveis). Um portal
+    // direto para o body escapa a esse containing block.
+    const mounted = useIsMounted()
 
-    return (
-        <div className="md:hidden">
-            <button
-                type="button"
-                onClick={() => setOpen(true)}
-                aria-label="Abrir menu"
-                className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
-            >
-                <Menu className="w-5 h-5" strokeWidth={1.75} />
-            </button>
-
+    const overlay = (
+        <>
             <div
                 onClick={() => setOpen(false)}
                 aria-hidden="true"
@@ -117,6 +125,21 @@ export default function MobileNavDrawer({ companyName, email }: MobileNavDrawerP
                     <ChevronRight className="w-4 h-4 text-slate-300 flex-shrink-0" strokeWidth={1.75} />
                 </Link>
             </aside>
+        </>
+    )
+
+    return (
+        <div className="md:hidden">
+            <button
+                type="button"
+                onClick={() => setOpen(true)}
+                aria-label="Abrir menu"
+                className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900 transition-colors"
+            >
+                <Menu className="w-5 h-5" strokeWidth={1.75} />
+            </button>
+
+            {mounted && createPortal(overlay, document.body)}
         </div>
     )
 }
