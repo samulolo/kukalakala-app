@@ -7,6 +7,7 @@ import InterviewScheduledEmail, { type InterviewNotifyAction } from "@/emails/In
 import InterviewResponseEmail from "@/emails/InterviewResponseEmail"
 import ContactMessageEmail from "@/emails/ContactMessageEmail"
 import BugReportEmail from "@/emails/BugReportEmail"
+import WeeklyDigestEmail from "@/emails/WeeklyDigestEmail"
 
 // Todas as funções abaixo são "best effort": nunca lançam erro para
 // não bloquear a ação principal do utilizador (candidatar-se, mudar
@@ -234,6 +235,33 @@ export async function sendBugReportEmail(params: {
         })
     } catch (err) {
         console.error("Erro ao enviar email de report de erro: ", err)
+    }
+}
+
+export async function sendWeeklyDigestEmail(params: {
+    to: string
+    companyName: string
+    activeJobsCount: number
+    weeklyApplicationsCount: number
+    recommendedCandidates: { name: string; headline: string }[]
+}): Promise<void> {
+    if (!canSendEmail()) return
+    try {
+        await resend.emails.send({
+            from: EMAIL_FROM,
+            to: params.to,
+            subject: `O teu resumo semanal: ${params.weeklyApplicationsCount} candidatura(s) nova(s)`,
+            react: (
+                <WeeklyDigestEmail
+                    companyName={params.companyName}
+                    activeJobsCount={params.activeJobsCount}
+                    weeklyApplicationsCount={params.weeklyApplicationsCount}
+                    recommendedCandidates={params.recommendedCandidates}
+                />
+            )
+        })
+    } catch (err) {
+        console.error("Erro ao enviar email de resumo semanal: ", err)
     }
 }
 
