@@ -26,10 +26,15 @@ interface JobFormDrawerProps {
     job: CompanyJob | null
     isOpen: boolean
     onClose: () => void
+    // Vaga de origem quando se está a duplicar: pré-preenche o formulário
+    // com os dados dela, mas o "job" continua null, pelo que a submissão
+    // cria uma vaga nova em vez de atualizar a original.
+    duplicateFrom?: CompanyJob | null
 }
 
-export default function JobFormDrawer({ job, isOpen, onClose }: JobFormDrawerProps) {
+export default function JobFormDrawer({ job, isOpen, onClose, duplicateFrom = null }: JobFormDrawerProps) {
     const isEditing = job !== null
+    const prefillSource = job ?? duplicateFrom
 
     return (
         <>
@@ -62,30 +67,43 @@ export default function JobFormDrawer({ job, isOpen, onClose }: JobFormDrawerPro
                     </button>
                 </div>
 
-                {/* A key ligada ao job + estado de abertura força um novo
-                    "mount" do formulário sempre que abre, para os campos
-                    partirem sempre dos dados atuais (sem useEffect). */}
-                <JobFormFields key={`${job?.id ?? "new"}|${isOpen}`} job={job} onClose={onClose} />
+                {/* A key ligada à vaga de origem + estado de abertura força
+                    um novo "mount" do formulário sempre que abre, para os
+                    campos partirem sempre dos dados atuais (sem useEffect). */}
+                <JobFormFields
+                    key={`${job ? job.id : duplicateFrom ? `dup-${duplicateFrom.id}` : "new"}|${isOpen}`}
+                    job={job}
+                    prefillSource={prefillSource}
+                    onClose={onClose}
+                />
             </aside>
         </>
     )
 }
 
-function JobFormFields({ job, onClose }: { job: CompanyJob | null; onClose: () => void }) {
+function JobFormFields({
+    job,
+    prefillSource,
+    onClose
+}: {
+    job: CompanyJob | null
+    prefillSource: CompanyJob | null
+    onClose: () => void
+}) {
     const isEditing = job !== null
     const { showToast } = useToast()
 
     const [form, setForm] = useState({
-        title: job?.title ?? "",
-        location: job?.location ?? "",
-        type: job?.type ?? employmentTypes[0],
-        category: job?.category ?? "",
-        salaryRange: job?.salaryRange ?? ""
+        title: prefillSource?.title ?? "",
+        location: prefillSource?.location ?? "",
+        type: prefillSource?.type ?? employmentTypes[0],
+        category: prefillSource?.category ?? "",
+        salaryRange: prefillSource?.salaryRange ?? ""
     })
-    const [description, setDescription] = useState(job?.description ?? "")
-    const [responsibilitiesText, setResponsibilitiesText] = useState(job?.responsibilities.join("\n") ?? "")
-    const [requirementsText, setRequirementsText] = useState(job?.requirements.join("\n") ?? "")
-    const [skills, setSkills] = useState<JobSkill[]>(job?.skills ?? [])
+    const [description, setDescription] = useState(prefillSource?.description ?? "")
+    const [responsibilitiesText, setResponsibilitiesText] = useState(prefillSource?.responsibilities.join("\n") ?? "")
+    const [requirementsText, setRequirementsText] = useState(prefillSource?.requirements.join("\n") ?? "")
+    const [skills, setSkills] = useState<JobSkill[]>(prefillSource?.skills ?? [])
     const [skillName, setSkillName] = useState("")
     const [skillLevel, setSkillLevel] = useState<SkillLevel>("obrigatorio")
     const [saving, setSaving] = useState(false)

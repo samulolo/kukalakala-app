@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Plus, Pencil, Trash2, Users, Pause, Play, Search } from "lucide-react"
+import { Plus, Pencil, Trash2, Users, Pause, Play, Search, Copy } from "lucide-react"
 import type { CompanyJob } from "@/lib/supabase/company-jobs"
 import { deleteJob, toggleJobActive } from "./actions"
 import JobFormDrawer from "./JobFormDrawer"
@@ -11,6 +11,7 @@ type StatusFilter = "all" | "active" | "paused"
 export default function VagasEmpresaClient({ jobs }: { jobs: CompanyJob[] }) {
     const [drawerOpen, setDrawerOpen] = useState(false)
     const [editingJob, setEditingJob] = useState<CompanyJob | null>(null)
+    const [duplicateFrom, setDuplicateFrom] = useState<CompanyJob | null>(null)
     const [busyId, setBusyId] = useState<string | null>(null)
     const [query, setQuery] = useState("")
     const [statusFilter, setStatusFilter] = useState<StatusFilter>("all")
@@ -32,11 +33,19 @@ export default function VagasEmpresaClient({ jobs }: { jobs: CompanyJob[] }) {
 
     const openCreate = () => {
         setEditingJob(null)
+        setDuplicateFrom(null)
         setDrawerOpen(true)
     }
 
     const openEdit = (job: CompanyJob) => {
         setEditingJob(job)
+        setDuplicateFrom(null)
+        setDrawerOpen(true)
+    }
+
+    const openDuplicate = (job: CompanyJob) => {
+        setEditingJob(null)
+        setDuplicateFrom(job)
         setDrawerOpen(true)
     }
 
@@ -143,6 +152,15 @@ export default function VagasEmpresaClient({ jobs }: { jobs: CompanyJob[] }) {
                                         </button>
                                         <button
                                             type="button"
+                                            onClick={() => openDuplicate(job)}
+                                            aria-label={`Duplicar ${job.title}`}
+                                            title="Duplicar"
+                                            className="inline-flex items-center justify-center w-9 h-9 rounded-lg text-slate-400 hover:text-blue-700 hover:bg-blue-50 transition-colors"
+                                        >
+                                            <Copy className="w-4.5 h-4.5" strokeWidth={1.75} />
+                                        </button>
+                                        <button
+                                            type="button"
                                             onClick={() => handleDelete(job)}
                                             disabled={busyId === job.id}
                                             aria-label={`Eliminar ${job.title}`}
@@ -179,7 +197,12 @@ export default function VagasEmpresaClient({ jobs }: { jobs: CompanyJob[] }) {
                 )}
             </div>
 
-            <JobFormDrawer job={editingJob} isOpen={drawerOpen} onClose={() => setDrawerOpen(false)} />
+            <JobFormDrawer
+                job={editingJob}
+                duplicateFrom={duplicateFrom}
+                isOpen={drawerOpen}
+                onClose={() => setDrawerOpen(false)}
+            />
         </>
     )
 }
