@@ -5,13 +5,15 @@ import { usePathname } from "next/navigation"
 import { getActiveNavItem } from "./nav-items"
 import LogoutButton from "@/components/dashboard/LogoutButton"
 import NotificationBell from "@/components/dashboard/NotificationBell"
+import MobileNavDrawer from "./MobileNavDrawer"
 
 interface TopbarProps {
     companyName: string
+    email: string
     userId: string
 }
 
-export default function Topbar({ companyName, userId }: TopbarProps) {
+export default function Topbar({ companyName, email, userId }: TopbarProps) {
     const pathname = usePathname()
     const active = getActiveNavItem(pathname)
     const initials = companyName.slice(0, 2).toUpperCase()
@@ -19,12 +21,15 @@ export default function Topbar({ companyName, userId }: TopbarProps) {
     return (
         <header className="sticky top-0 z-40 bg-white/80 backdrop-blur-xl border-b border-slate-200/70 px-6 py-4">
             <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-2.5 md:hidden">
-                    <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-700 text-white text-xs font-semibold">
-                        K
-                    </span>
-                    <Link href="/" className="text-base font-semibold tracking-tight text-slate-900">
-                        Kukalakala
+                <div className="flex items-center gap-2 md:hidden">
+                    <MobileNavDrawer companyName={companyName} email={email} />
+                    <Link href="/" className="flex items-center gap-2">
+                        <span className="inline-flex items-center justify-center w-7 h-7 rounded-lg bg-blue-700 text-white text-xs font-semibold">
+                            K
+                        </span>
+                        <span className="text-base font-semibold tracking-tight text-slate-900">
+                            Kukalakala
+                        </span>
                     </Link>
                 </div>
 

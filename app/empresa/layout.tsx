@@ -3,7 +3,6 @@ import { getVerifiedUser } from "@/supabase/server"
 import { getMyCompany, upsertMyCompany } from "@/lib/supabase/company"
 import Sidebar from "@/components/empresa/Sidebar"
 import Topbar from "@/components/empresa/Topbar"
-import MobileTabBar from "@/components/empresa/MobileTabBar"
 import VerificationBanner from "@/components/empresa/VerificationBanner"
 import { ToastProvider } from "@/components/dashboard/ToastContext"
 import ToastViewport from "@/components/dashboard/ToastViewport"
@@ -54,8 +53,8 @@ export default async function EmpresaLayout({
             <div className="min-h-screen bg-slate-50">
                 <Sidebar companyName={companyName} email={email} />
                 <div className="md:pl-64 flex flex-col min-h-screen">
-                    <Topbar companyName={companyName} userId={user.id} />
-                    <main className="flex-1 px-6 py-8 pb-20 md:pb-8">
+                    <Topbar companyName={companyName} email={email} userId={user.id} />
+                    <main className="flex-1 px-6 py-8">
                         <div className="max-w-5xl mx-auto">
                             {company && (
                                 <VerificationBanner
@@ -67,7 +66,6 @@ export default async function EmpresaLayout({
                         </div>
                     </main>
                 </div>
-                <MobileTabBar />
                 <ReportBugWidget />
             </div>
             <ToastViewport />
