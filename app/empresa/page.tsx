@@ -2,13 +2,19 @@ import Link from "next/link"
 import { Briefcase, Users, Clock, TrendingUp, ArrowUpRight } from "lucide-react"
 import { getCompanyJobs } from "@/lib/supabase/company-jobs"
 import { getCompanyApplications } from "@/lib/supabase/company-applications"
+import { getMyCompany } from "@/lib/supabase/company"
 import { buildMonthlyEvolution } from "@/lib/supabase/company-metrics"
 import StatCard from "@/components/dashboard/StatCard"
 import StatusBadge from "@/components/dashboard/StatusBadge"
 import EvolutionLineChart from "@/components/dashboard/EvolutionLineChart"
+import OnboardingChecklist from "@/components/empresa/OnboardingChecklist"
 
 export default async function EmpresaHomePage() {
-    const [jobs, applications] = await Promise.all([getCompanyJobs(), getCompanyApplications()])
+    const [jobs, applications, company] = await Promise.all([
+        getCompanyJobs(),
+        getCompanyApplications(),
+        getMyCompany()
+    ])
 
     const activeJobsCount = jobs.filter((job) => job.isActive).length
     const pendingCount = applications.filter((a) => a.status === "Em análise").length
@@ -17,8 +23,23 @@ export default async function EmpresaHomePage() {
     const recentApplications = applications.slice(0, 6)
     const monthlyEvolution = buildMonthlyEvolution(applications.map((a) => a.createdAt))
 
+    const profileComplete = Boolean(
+        company?.sector.trim() && company.description.trim() && company.location.trim() && company.phone.trim()
+    )
+    const hasJob = jobs.length > 0
+    const hasApplication = applications.length > 0
+    const showOnboardingChecklist =
+        company !== null && !company.onboardingChecklistDismissed && !(profileComplete && hasJob && hasApplication)
+
     return (
         <div className="space-y-6">
+            {showOnboardingChecklist && (
+                <OnboardingChecklist
+                    profileComplete={profileComplete}
+                    hasJob={hasJob}
+                    hasApplication={hasApplication}
+                />
+            )}
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
                 <StatCard

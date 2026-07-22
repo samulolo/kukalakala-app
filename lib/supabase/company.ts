@@ -16,6 +16,7 @@ export interface Company {
     verificationSubmittedAt: string | null
     verificationReviewedAt: string | null
     verificationRejectionReason: string
+    onboardingChecklistDismissed: boolean
 }
 
 export interface CompanyInput {
@@ -43,6 +44,7 @@ interface CompanyRow {
     verification_submitted_at: string | null
     verification_reviewed_at: string | null
     verification_rejection_reason: string
+    onboarding_checklist_dismissed: boolean
 }
 
 function mapCompanyRow(row: CompanyRow): Company {
@@ -59,7 +61,8 @@ function mapCompanyRow(row: CompanyRow): Company {
         verificationDocumentPath: row.verification_document_path,
         verificationSubmittedAt: row.verification_submitted_at,
         verificationReviewedAt: row.verification_reviewed_at,
-        verificationRejectionReason: row.verification_rejection_reason
+        verificationRejectionReason: row.verification_rejection_reason,
+        onboardingChecklistDismissed: row.onboarding_checklist_dismissed ?? false
     }
 }
 
@@ -139,6 +142,25 @@ export async function submitCompanyVerification(documentPath: string): Promise<{
 
     if (error) {
         console.error("Erro ao submeter verificação da empresa: ", error)
+        return { error: error.message }
+    }
+    return { error: null }
+}
+
+// Dispensa manualmente o checklist de ativação no Início da empresa —
+// fica escondido a partir daí, mesmo que ainda faltem passos.
+export async function dismissOnboardingChecklist(): Promise<{ error: string | null }> {
+    const supabase = await createClient()
+    const { data: { user } } = await getVerifiedUser()
+    if (!user) return { error: "Não autenticado" }
+
+    const { error } = await supabase
+        .from("companies")
+        .update({ onboarding_checklist_dismissed: true })
+        .eq("id", user.id)
+
+    if (error) {
+        console.error("Erro ao dispensar checklist de ativação: ", error)
         return { error: error.message }
     }
     return { error: null }
